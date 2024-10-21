@@ -13,3 +13,23 @@ Firstly, we will drive the robot in a spiral to colect all the ping pong balls t
 <p align="center">
   <image src='mapa1.jpg' align='center' width='400'/>
 </p>
+
+# Coding Intro
+
+This whole project is being made and will be made in micropython whith the use of a EV3 micropython library
+
+<p align="center">
+  <a href='https://pybricks.com/ev3-micropython/startinstall.html'>Oficial documentation</a>
+</p>
+
+NEVER DELETE FISRT LINE IN MAIN - it loads the micropython
+```python
+#!/usr/bin/env pybricks-micropython
+```
+
+# Code snippets to use later
+
+```python
+speaker.say(text)
+# how about we use this to get some info trought out the program test runs?
+```
