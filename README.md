@@ -10,4 +10,6 @@ Speaking about the competiton, maybe it would be nice to include its name and li
 
 If you read the rules and you know us then you must come to a conclusion that we will no matter what want to have a 100% rating. So how do we start?
 Firstly, we will drive the robot in a spiral to colect all the ping pong balls that we get point for. Secondly, we're gonna collect the rest of the balls and then dump them at the oppents half of the game map.
-<image src='mapa1.jpg' aling='centre' width='400'>
+<p align="center">
+  <image src='mapa1.jpg' align='center' width='400'/>
+</p>
