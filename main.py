@@ -7,40 +7,28 @@ from pybricks.tools import wait, StopWatch, DataLog
 from pybricks.robotics import DriveBase
 from pybricks.media.ev3dev import SoundFile, ImageFile
 
-from color_check import color
-
-
-##--##--##--## ROBo - CONSTANTS ##--##--## 
-Motors = {
-    'left' : 'D',
-    'right' : 'A',
-    'sort' : '' # TODO: right value (port)
-}
-Buttons = {
-    'front' : 'S1'
-}
-ColorSensor_port = 'S2'
-
-Wheel_Diameter = 0 # TODO: right value
-Axle_Track = 0 # TODO: right value
+##--##--##--## ROBO CONSTANTS ##--##--## 
+from RoboConstants.py import ( Motors, Buttons, ColorSensor_port,
+                                Wheel_Diameter, Axle_Track )
 RUN = True
 
-##--##--##--## ROBO SETT UP ##--##--## 
+##--##--##--## ROBO SET UP ##--##--## 
 Ev3 = EV3Brick()
 
 # Motors
-LeftMotor = Motor( Motors['left'],positive_direction = Direction.CLOCKWISE )
+LeftMotor = Motor( Motors['left'],positive_direction = Direction.COUNTERCLOCKWISE )
 RightMotor = Motor( Motors['right'],positive_direction = Direction.COUNTERCLOCKWISE )
 
 SortingMotor = Motor( Motors['sort'],positive_direction = Direction.COUNTERCLOCKWISE )
 
-DriveBase = DriveBase( LeftMotor, RightMotor, Wheel_Diameter, Axle_Track )
+robot = DriveBase( LeftMotor, RightMotor, Wheel_Diameter, Axle_Track )
 
 # Sensors
 ColorSensor = ColorSensor( ColorSensor_port )
 
 FrontBtn =  TouchSensor( Buttons['front'] )
 
+print( ColorSensor.rgb() )
 
 ##--##--##--## CHECKING THE COLORS ##--##--## 
 ## TODO: create the ability to configure the colors - right now there is a problem with orange
@@ -56,28 +44,26 @@ def color(inputColor):
 
 
 ##--##--##--## CODE CONSTANTS ##--##--##--##
-DriveSpeed = 100 # in milemetrs per second
+DriveSpeed = 400 # in milemetrs per second
 
 ##--##--##--## GAME LOOP ##--##--##--##
-ev3.speaker.beep()
 
 turn_count = 0
 
 while RUN:
-    DriveBase.drive()
+    robot.drive(DriveSpeed,0)
 
-    # color detection
-    colorDetected = ColorSensor.color()
-    if colorDetected != None:
-        color(colorDetected)
+    # # color detection
+    # colorDetected = ColorSensor.color()
+    # if colorDetected != None:
+    #     color(colorDetected)
 
     # collision detection
     if FrontBtn.pressed():
-        DriveBase.stop()
-        ev3.speaker.say('collision with an object')
-        DriveBase.turn(90) # I hope that the code will wait for the robot to turn, otherwise we have a problem
+        robot.stop()
+        robot.turn(90)
         turn_count += 1
 
         # break the program
-        if turn_count == 2:
+        if turn_count == 5:
             break
