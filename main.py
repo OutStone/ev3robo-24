@@ -10,7 +10,11 @@ from pybricks.media.ev3dev import SoundFile, ImageFile
 ##--##--##--## ROBO CONSTANTS ##--##--## 
 from RoboConstants.py import ( Motors, Buttons, ColorSensor_port,
                                 Wheel_Diameter, Axle_Track )
+# TODO: test if I can just import the file without specifing the variables to be imported
 RUN = True
+
+##--##--##--## CODE CONSTANTS ##--##--##--##
+import CodeConstants
 
 ##--##--##--## ROBO SET UP ##--##--## 
 Ev3 = EV3Brick()
@@ -31,32 +35,46 @@ FrontBtn =  TouchSensor( Buttons['front'] )
 print( ColorSensor.rgb() )
 
 ##--##--##--## CHECKING THE COLORS ##--##--## 
-## TODO: create the ability to configure the colors - right now there is a problem with orange
 
-def color(inputColor):
-    if inputColor = Color.BLUE:
-        pass # TODO: move the motor right way
-    else if inputColor = Color.RED:
-        pass # TODO: move the motor right way
-    else if inputColor = Color.GREEN:
-        pass # TODO: move the motor right way
+# sorts the ping pong balls based on highest rgb value - red or blue
+def color( inputColor, stage ):
+    Sorting = True
+    red = inputColor[0]
+    green = inputColor[1]
+    blue  = inputColor[2]
 
+    match stage:
+        case 1:
+            if red > blue:
+                print('red')
+                SortingMotor.run_angle(SortingSpeed, SortAngle['red'], then=Stop.HOLD, wait=False)
 
+            elif blue > red:
+                print('blue')
+                SortingMotor.run_angle(SortingSpeed, SortAngle['blue'], then=Stop.HOLD, wait=False)
 
-##--##--##--## CODE CONSTANTS ##--##--##--##
-DriveSpeed = 400 # in milemetrs per second
+        case 2:
+            # no need to sort by color - balls are just picked up to be throwed on oponent's side  
+            SortingMotor.run_angle(SortingSpeed, SortAngle['red'], then=Stop.HOLD, wait=False)
+
 
 ##--##--##--## GAME LOOP ##--##--##--##
 
 turn_count = 0
+Sorting = False
 
 while RUN:
     robot.drive(DriveSpeed,0)
 
-    # # color detection
-    # colorDetected = ColorSensor.color()
-    # if colorDetected != None:
-    #     color(colorDetected)
+    # color detection
+    isColor = ColorSensor.color()
+    if isColor != None and not Sorting:
+        detectedColor = ColorSensor.rgb()
+        color( colorDetected, GameStage )
+
+    elif isColor == None:
+        Sorting = False
+        # TODO: some kind of control if the sorting mechanism is on home positions
 
     # collision detection
     if FrontBtn.pressed():
@@ -67,3 +85,4 @@ while RUN:
         # break the program
         if turn_count == 5:
             break
+        # TODO: get this system to drive throught the game map as planneds

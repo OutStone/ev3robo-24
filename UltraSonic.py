@@ -10,7 +10,11 @@ from pybricks.media.ev3dev import SoundFile, ImageFile
 ##--##--##--## ROBo - CONSTANTS ##--##--## 
 from RoboConstants.py import ( Motors, Buttons, ColorSensor_port,
                                 Wheel_Diameter, Axle_Track, InfraSensor_port )
+# TODO: test if I can just import the file without specifing the variables to be imported
 RUN = True
+
+##--##--##--## CODE CONSTANTS ##--##--##--##
+import CodeConstants
 
 ##--##--##--## ROBO SETT UP ##--##--## 
 Ev3 = EV3Brick()
@@ -28,31 +32,6 @@ ColorSensor = ColorSensor( ColorSensor_port )
 InfraSensor = UltrasonicSensor( InfraSensor_port )
 
 FrontBtn =  TouchSensor( Buttons['front'] )
-
-
-##--##--##--## CHECKING THE COLORS ##--##--## 
-## TODO: create the ability to configure the colors - right now there is a problem with orange
-
-def color(inputColor):
-    if inputColor = Color.BLUE:
-        pass # TODO: move the motor right way
-    else if inputColor = Color.RED:
-        pass # TODO: move the motor right way
-    else if inputColor = Color.GREEN:
-        pass # TODO: move the motor right way
-
-
-
-##--##--##--## CODE CONSTANTS ##--##--##--##
-DriveSpeed = 400 # in milemetrs per second
-
-WallDistance = 100 # in % from the sensors maximum
-        # TODO: the distances will differ in value based on the drive line we are in
-koeficient = -5 # TODO: find the right value
-
-DistanceAvrg = WallDistance
-ValuesInAvrg = 10
-
 
 
 ##--##--##--## GAME LOOP ##--##--##--##
