@@ -8,8 +8,7 @@ from pybricks.robotics import DriveBase
 from pybricks.media.ev3dev import SoundFile, ImageFile
 
 ##--##--##--## ROBO CONSTANTS ##--##--## 
-from RoboConstants.py import ( Motors, Buttons, ColorSensor_port,
-                                Wheel_Diameter, Axle_Track )
+from RoboConstants.py
 # TODO: test if I can just import the file without specifing the variables to be imported
 RUN = True
 
