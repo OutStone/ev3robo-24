@@ -40,9 +40,26 @@ def Turn(Angle):
     curentAngle = Gyro.angle()
     print( curentAngle )
     LastAngle = curentAngle
-
     while abs(curentAngle) < abs(Angle):
         robot.drive(0, -45*direction)
+        curentAngle = Gyro.angle()
+        if curentAngle != LastAngle:
+            print( curentAngle )
+            LastAngle = curentAngle
+    
+    robot.stop()
+
+def Turn_in_Motion( A, B, Speed, Angle ):
+    Gyro.reset_angle(0)
+
+    curentAngle = Gyro.angle()
+    print( curentAngle )
+    LastAngle = curentAngle
+
+    while abs(curentAngle) < abs(Angle):
+        LeftMotor.speed(A*Speed)
+        RightMotor.speed(B*Speed)
+        
         curentAngle = Gyro.angle()
         if curentAngle != LastAngle:
             print( curentAngle )
