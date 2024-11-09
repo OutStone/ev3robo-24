@@ -10,8 +10,9 @@ Buttons = {
     'front' : Port.S4
 }
 ColorSensor_port = Port.S3
+Gyro_port = Port.S3
 InfraSensor_port = Port.S2
 UlraSensor_port = Port.S2
 
 Wheel_Diameter = 55 # in milimeters
-Axle_Track = 76 # in milemeters
+Axle_Track = 130 # in mm - small testing robo has just 76 mm
