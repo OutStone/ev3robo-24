@@ -32,4 +32,4 @@ Values_in_Avrg = 5 # 10 for infraRed
 MaxCorrection = 70
 
 ##--##--## Constants for turning function  ##--##--##
-TurnErr = 1/10.5
+TurnErr = 1/6.5 # TODO: set a error value before each run

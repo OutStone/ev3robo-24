@@ -31,38 +31,57 @@ UlraSensor = UltrasonicSensor( RC.UlraSensor_port )
 
 ##--##--##--## Funcions ##--##--##--##
 def Turn(Angle):
+    robot.straight(-10)
+    robot.stop()
+    
     Angle -= CC.TurnErr*Angle
     
     direction = 1 if Angle > 0 else -1
-    print('in func',Gyro.angle(), Angle)
+    print('in func; gyro before: ',Gyro.angle(),'target angle: ', Angle)
     Gyro.reset_angle(0)
     
     curentAngle = Gyro.angle()
-    print( curentAngle )
+    print('current angle: ', curentAngle )
     LastAngle = curentAngle
     while abs(curentAngle) < abs(Angle):
         robot.drive(0, -45*direction)
         curentAngle = Gyro.angle()
         if curentAngle != LastAngle:
-            print( curentAngle )
+            print('current angle: ', curentAngle )
             LastAngle = curentAngle
     
     robot.stop()
 
-def Turn_in_Motion( A, B, Speed, Angle ):
+def OneWheelTurn( Speed, Angle ): # in mm & deg DOES NOT WORK!!!!!
+    robot.straight(-35)
+    robot.stop()
+    
+    Angle -= CC.TurnErr*Angle
+    
+    print('in func; gyro before: ',Gyro.angle(),'target angle: ', Angle)
     Gyro.reset_angle(0)
 
+    if Angle > 0: # turning left - left wheel stands
+        Left = 0
+        Right = 1
+    else:
+        Left = 1
+        Right = 0
+    
     curentAngle = Gyro.angle()
-    print( curentAngle )
+    print('current angle: ', curentAngle )
     LastAngle = curentAngle
 
     while abs(curentAngle) < abs(Angle):
-        LeftMotor.speed(A*Speed)
-        RightMotor.speed(B*Speed)
+        LeftSpeed = (Left*Speed)
+        RightSpeed = (Right*Speed)
+        
+        LeftMotor.run(LeftSpeed)
+        RightMotor.run(RightSpeed)
         
         curentAngle = Gyro.angle()
         if curentAngle != LastAngle:
-            print( curentAngle )
+            print('current angle: ', curentAngle )
             LastAngle = curentAngle
     
     robot.stop()
@@ -92,7 +111,7 @@ def Follow(Stage):
             correction_Angle = sum/lenght
 
         
-        print(error, num, correction_Angle)
+        print('err: ',error,'measured koef: ', num,'final koef: ', correction_Angle)
         return correction_Angle
 
 ##--##--##--## GAME LOOP ##--##--##--##
@@ -106,6 +125,7 @@ while True:
         robot.stop()
         Ev3.speaker.beep()
         Turn(-90)
+        #OneWheelTurn(300, -90)
         CC.DrivingStage += 1
         if CC.DrivingStage == 4:
             robot.reset()
@@ -123,10 +143,10 @@ while True:
         robot.drive(CC.DriveSpeed, -10)
     elif CC.DrivingStage == 4: ## Mechanical follow with distnace measurement
         ahead = robot.distance()
-        print(ahead, ahead >= CC.StageValues[4])
+        print('ahead', ahead,'done?: ', ahead >= CC.StageValues[4])
         robot.drive(CC.DriveSpeed, -10)
 
-        if ahead >= StageValues[4]:
+        if ahead >= CC.StageValues[4]:
             ForcedTurn = True
     else:
         break
