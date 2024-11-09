@@ -8,7 +8,8 @@ SortAngle = {
 
 WallDistance = 30 # in % from the sensors maximum
         # TODO: the distances will differ in value based on the drive line we are in
-koeficient = -5 # TODO: find the right value
+linKoef = 0.02
+expKoef = 3
 
-DistanceAvrg = WallDistance
-ValuesInAvrg = 10
+DistanceAvrg = []
+Values_in_Avrg = 7 # 10 for infraRed
