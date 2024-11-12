@@ -52,38 +52,35 @@ def Turn(Angle):
     
     robot.stop()
 
-def OneWheelTurn( Speed, Angle ): # in mm & deg DOES NOT WORK!!!!!
-    robot.straight(-35)
+def ServoTurn( Speed, Angle ): # in mm & deg
+    # equation for number of wheel turns ( x )
+    # x = (Turning radius/wheel radius) * (turning angle/360 deg)
+
+    reverse_dist = 15 # in mm
+
+    robot.straight(-1*reverse_dist)
     robot.stop()
-    
-    Angle -= CC.TurnErr*Angle
-    
-    print('in func; gyro before: ',Gyro.angle(),'target angle: ', Angle)
-    Gyro.reset_angle(0)
 
     if Angle > 0: # turning left - left wheel stands
-        Left = 0
-        Right = 1
-    else:
-        Left = 1
-        Right = 0
-    
-    curentAngle = Gyro.angle()
-    print('current angle: ', curentAngle )
-    LastAngle = curentAngle
+        Can_Left = 0
+        Can_Right = 1
+    else: # turning right
+        Can_Left = 1
+        Can_Right = 0
 
-    while abs(curentAngle) < abs(Angle):
-        LeftSpeed = (Left*Speed)
-        RightSpeed = (Right*Speed)
-        
-        LeftMotor.run(LeftSpeed)
-        RightMotor.run(RightSpeed)
-        
-        curentAngle = Gyro.angle()
-        if curentAngle != LastAngle:
-            print('current angle: ', curentAngle )
-            LastAngle = curentAngle
-    
+    Radius_Ratio = RC.Axle_Track/(RC.Wheel_Diameter/2)
+    print(Radius_Ratio)
+    Angle_Fraction = Angle/360
+
+    Left_Angle = Can_Left * (Angle_Fraction * Radius_Ratio) * 360
+    Right_Angle = Can_Right * (Angle_Fraction * Radius_Ratio) * 360
+
+
+    print("zacatek zataceni")
+    LeftMotor.run_angle(  Left_Angle  )
+    RightMotor.run_angle( Right_Angle )
+
+    print("konec zataceni")
     robot.stop()
 
 def Follow(Stage):

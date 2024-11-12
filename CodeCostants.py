@@ -3,6 +3,7 @@ DrivingStage = 1 # changes with every turn
 
 DistanceSensor_Offset = 10 # in cm from the ball eating part
 
+Do_ColorSort = True 
 StageValues = {
     1 : 70 - DistanceSensor_Offset, # Wall distance in cm 
     2 : None,
