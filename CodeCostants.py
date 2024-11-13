@@ -9,7 +9,7 @@ StageValues = {
     2 : None,
     3 : None,
     4 : 280, # Drive distance in mm
-    5 : 42 - DistanceSensor_Offset, # Wall distance in cm
+    5 : 42 - DistanceSensor_Offset, # Wall distance in cm # real value after last test 510mm
     6 : None,
     7 : None 
     # for eight I will need a drive distance again    
@@ -18,8 +18,8 @@ StageValues = {
 ##--##--## Constants for sorting 
 SortingSpeed = 100 # in deg/s
 SortAngle = {
-    'red' : 0, # TODO: find the correct value
-    'blue' : 0 # TODO: find the correct value
+    'red' : 100, # TODO: find the correct value
+    'blue' : -100 # TODO: find the correct value
 }
 
 ##--##--## Constants for following wall with a sensor ##--##--##

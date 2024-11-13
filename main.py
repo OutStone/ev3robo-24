@@ -24,7 +24,7 @@ robot = DriveBase( LeftMotor, RightMotor, RC.Wheel_Diameter, RC.Axle_Track )
 
 # Sensors
 FrontBtn =  TouchSensor( RC.Buttons['front'] )
-Gyro = GyroSensor( RC.Gyro_port )
+# Gyro = GyroSensor( RC.Gyro_port )
 #InfraSensor = InfraredSensor( RC.InfraSensor_port )
 UlraSensor = UltrasonicSensor( RC.UlraSensor_port )
 
@@ -56,31 +56,26 @@ def ServoTurn( Speed, Angle ): # in mm & deg
     # equation for number of wheel turns ( x )
     # x = (Turning radius/wheel radius) * (turning angle/360 deg)
 
-    reverse_dist = 15 # in mm
+    reverse_dist = 40 # in mm
 
     robot.straight(-1*reverse_dist)
     robot.stop()
 
-    if Angle > 0: # turning left - left wheel stands
-        Can_Left = 0
-        Can_Right = 1
-    else: # turning right
-        Can_Left = 1
-        Can_Right = 0
-
     Radius_Ratio = RC.Axle_Track/(RC.Wheel_Diameter/2)
-    print(Radius_Ratio)
     Angle_Fraction = Angle/360
+    error = 10/9
 
-    Left_Angle = Can_Left * (Angle_Fraction * Radius_Ratio) * 360
-    Right_Angle = Can_Right * (Angle_Fraction * Radius_Ratio) * 360
+    if Angle > 0: # turning left - left wheel stands
+        Right_Angle = Can_Right * (Angle_Fraction * Radius_Ratio) * 360 * error
+        print("zatacim do leva", Right_Angle)
 
-
-    print("zacatek zataceni")
-    LeftMotor.run_angle(  Left_Angle  )
-    RightMotor.run_angle( Right_Angle )
-
+        RightMotor.run_angle( Speed,Right_Angle )
+    else: # turning right
+        Left_Angle = (Angle_Fraction * Radius_Ratio) * 360 * -1  * error
+        print("zatacim do prava", Left_Angle)
+        LeftMotor.run_angle( Speed,Left_Angle  )
     print("konec zataceni")
+
     robot.stop()
 
 def Follow(Stage):
@@ -112,17 +107,17 @@ def Follow(Stage):
         return correction_Angle
 
 ##--##--##--## GAME LOOP ##--##--##--##
-Ev3.speaker.beep()
+# Ev3.speaker.beep()
 ForcedTurn = False
 
-while True:
+
+while True: # change to True to run
 
     # stop the program detection
     if FrontBtn.pressed() or ForcedTurn:
         robot.stop()
         Ev3.speaker.beep()
-        Turn(-90)
-        #OneWheelTurn(300, -90)
+        ServoTurn(400,-90)
         CC.DrivingStage += 1
         if CC.DrivingStage == 4:
             robot.reset()
@@ -135,9 +130,9 @@ while True:
 
         robot.drive(CC.DriveSpeed, angle)
     elif CC.DrivingStage == 2: ## Mechanical follow
-        robot.drive(CC.DriveSpeed, -10)
+        robot.drive(CC.DriveSpeed, -8)
     elif CC.DrivingStage == 3: ## Mechanical follow
-        robot.drive(CC.DriveSpeed, -10)
+        robot.drive(CC.DriveSpeed, -8)
     elif CC.DrivingStage == 4: ## Mechanical follow with distnace measurement
         ahead = robot.distance()
         print('ahead', ahead,'done?: ', ahead >= CC.StageValues[4])
@@ -146,4 +141,6 @@ while True:
         if ahead >= CC.StageValues[4]:
             ForcedTurn = True
     else:
+        dist = UlraSensor.distance()
+        print('wall distance after last turn: ', dist)
         break

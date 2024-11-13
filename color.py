@@ -21,9 +21,9 @@ SortingMotor = Motor( RC.Motors['sort'],positive_direction = Direction.COUNTERCL
 LeftMotor = Motor( RC.Motors['left'],positive_direction = Direction.COUNTERCLOCKWISE )
 
 # Sensors
-ColorSensor = ColorSensor( ColorSensor_port )
+ColorSensor = ColorSensor( RC.ColorSensor_port )
 
-FrontBtn = TouchSensor( Buttons['front'] )
+FrontBtn = TouchSensor( RC.Buttons['front'] )
 
 ##--##--##--## CHECKING THE COLORS ##--##--## 
 
@@ -35,23 +35,23 @@ def Sort_Func( DetectedColor, sort ):
     if sort:
         if DetectedColor == Color.RED:
             print('red')
-            SortingMotor.run_angle(SortingSpeed, SortAngle['red'], then=Stop.HOLD, wait=False)
+            SortingMotor.run_angle(CC.SortingSpeed, CC.SortAngle['red'], then=Stop.HOLD, wait=False)
             Now_Sorting = True
 
         elif DetectedColor == Color.BLUE:
             print('blue')
-            SortingMotor.run_angle(SortingSpeed, SortAngle['blue'], then=Stop.HOLD, wait=False)
+            SortingMotor.run_angle(CC.SortingSpeed, CC.SortAngle['blue'], then=Stop.HOLD, wait=False)
             Now_Sorting = True
         else:
             print("unknown color: ", DetectedColor)
     else:
         # no need to sort by color - balls are just picked up into the same container to be throwed on oponent's side  
-        SortingMotor.run_angle(SortingSpeed, SortAngle['red'], then=Stop.HOLD, wait=False)
+        SortingMotor.run_angle(CC.SortingSpeed, CC.SortAngle['red'], then=Stop.HOLD, wait=False)
 
 
 ##--##--##--## GAME LOOP ##--##--##--##
 Now_Sorting = False
-LeftMotor.run(CC.DriveSpeed)
+#LeftMotor.run(CC.DriveSpeed)
 
 while True:
     # color detection
