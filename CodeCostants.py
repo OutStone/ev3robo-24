@@ -16,10 +16,11 @@ StageValues = {
 }
 
 ##--##--## Constants for sorting 
-SortingSpeed = 100 # in deg/s
+SortSpeed = 800 # in deg/s
+SortTime = 450 # in miliseconds
 SortAngle = {
-    'red' : 100, # TODO: find the correct value
-    'blue' : -100 # TODO: find the correct value
+    'red' : -230,
+    'blue' : 70
 }
 
 ##--##--## Constants for following wall with a sensor ##--##--##
@@ -33,4 +34,4 @@ Values_in_Avrg = 5 # 10 for infraRed
 MaxCorrection = 70
 
 ##--##--## Constants for turning function  ##--##--##
-TurnErr = 1/6.5 # TODO: set a error value before each run
+TurnErr = 10/9 #TODO: check at the competition

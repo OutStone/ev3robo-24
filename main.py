@@ -63,15 +63,14 @@ def ServoTurn( Speed, Angle ): # in mm & deg
 
     Radius_Ratio = RC.Axle_Track/(RC.Wheel_Diameter/2)
     Angle_Fraction = Angle/360
-    error = 10/9
 
     if Angle > 0: # turning left - left wheel stands
-        Right_Angle = Can_Right * (Angle_Fraction * Radius_Ratio) * 360 * error
+        Right_Angle = Can_Right * (Angle_Fraction * Radius_Ratio) * 360 * CC.TurnErr
         print("zatacim do leva", Right_Angle)
 
         RightMotor.run_angle( Speed,Right_Angle )
     else: # turning right
-        Left_Angle = (Angle_Fraction * Radius_Ratio) * 360 * -1  * error
+        Left_Angle = (Angle_Fraction * Radius_Ratio) * 360 * -1  * CC.TurnErr
         print("zatacim do prava", Left_Angle)
         LeftMotor.run_angle( Speed,Left_Angle  )
     print("konec zataceni")
