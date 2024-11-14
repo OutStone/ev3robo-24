@@ -31,5 +31,10 @@ DistanceAvrg = []
 Values_in_Avrg = 5 # 10 for infraRed
 MaxCorrection = 70
 
+##--##--## Constants for mechanical following ##--##--##
+FollowAngle = {
+    'ok' : -5,
+    'btn-off' : -15
+}
 ##--##--## Constants for turning function  ##--##--##
 TurnErr = 10/9 #CHECK: check at the competition
