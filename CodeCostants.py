@@ -16,22 +16,20 @@ StageValues = {
 }
 
 ##--##--## Constants for sorting 
-SortSpeed = 800 # in deg/s
-SortTime = 450 # in miliseconds
+SortSpeed = 1000 # in deg/s
+SortTime = 370 # in miliseconds; 70 ms is a safety gap (sometimes the values are close to 340) 
 SortAngle = {
-    'red' : -230,
-    'blue' : 70
+    'red' : -70, ## -205 with reversed gear ratio (small to big)
+    'blue' : 12 ## 40 with reversed gear ration (small to big)
 }
 
 ##--##--## Constants for following wall with a sensor ##--##--##
-WallDistance = 30 # in % from the sensors maximum
-        # TODO: the distances will differ in value based on the drive line we are in
 linKoef = 0.05
-expKoef = 3
+expKoef = 3 
 
 DistanceAvrg = []
 Values_in_Avrg = 5 # 10 for infraRed
 MaxCorrection = 70
 
 ##--##--## Constants for turning function  ##--##--##
-TurnErr = 10/9 #TODO: check at the competition
+TurnErr = 10/9 #CHECK: check at the competition

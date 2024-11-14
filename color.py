@@ -42,7 +42,7 @@ def Sort_Func( DetectedColor, sort ):
             SortingMotor.run_angle(
                 CC.SortSpeed,
                 CC.SortAngle['red'],
-                then=Stop.HOLD,
+                then=Stop.BRAKE,
                 wait=False
             )
             Back_Direction = 'red'
@@ -56,7 +56,7 @@ def Sort_Func( DetectedColor, sort ):
             SortingMotor.run_angle(
                 CC.SortSpeed,
                 CC.SortAngle['blue'],
-                then=Stop.HOLD,
+                then=Stop.BRAKE,
                 wait=False
             )
             Back_Direction = 'blue'
@@ -69,7 +69,7 @@ def Sort_Func( DetectedColor, sort ):
         
         print('part 2 sort')
         # no need to sort by color - balls are just picked up into the same container to be throwed on oponent's side  
-        SortingMotor.run_angle(CC.SortSpeed, CC.SortAngle['red'], then=Stop.HOLD, wait=False)
+        SortingMotor.run_angle(CC.SortSpeed, CC.SortAngle['red'], then=Stop.BRAKE, wait=False)
 
 ##--##--##--## Other func ##--##--##--##
 def sign(a): # return a mathematical sign of a given number ( + 0 - )
@@ -104,7 +104,7 @@ while True:
             SortingMotor.run_angle(
                 CC.SortSpeed,
                 -1* CC.SortAngle[Back_Direction] + sign(CC.SortAngle[Back_Direction])*5, # the second part makes the motor move on the way back a bit less
-                then=Stop.HOLD,
+                then=Stop.BRAKE,
                 wait=False
             )
             Back_Direction = None
@@ -115,7 +115,6 @@ while True:
 
             Now_Sorting = False
 
-    
     
     # break the loop
     if FrontBtn.pressed():
