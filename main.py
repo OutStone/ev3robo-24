@@ -62,35 +62,21 @@ def ServoTurn( Speed, Angle ): # in deg/s & deg
     robot.stop()
 
 def Follow_Ultra(Stage):
-        # dist = InfraSensor.distance()
-        dist = UlraSensor.distance()
-        error = CC.StageValues[Stage] - dist/10 # dividing by 10 'cause ultrasonic sensor gives answer in mm -- delete the dividing when working with infraRed
+        global integral, previous_error
+        dist = UlraSensor.distance()/10
+        print(round(dist, 3))
+        error = CC.StageValues[Stage] - dist
+        integral += error
+        derivative = error - previous_error
 
-        lenght = len(CC.DistanceAvrg)
-        sum = 0
+        correction = CC.proportial_gain * error + CC.integral_gain * integral + CC.derivative_gain * derivative
+        previous_error = error
 
-        if lenght == 0: # creates an average value of last 5
-            CC.DistanceAvrg.append(error)
-            num = error
-        else:
-            if lenght == CC.Values_in_Avrg:
-                CC.DistanceAvrg.pop(0)
-            CC.DistanceAvrg.append(error)
+        left_speed = True_Drive_Speed + correction
+        right_speed = True_Drive_Speed - correction
 
-            for i in CC.DistanceAvrg:
-                sum += i
-            num = sum/(lenght + 1)
-            
-        correction_Angle =  -1 * (num**CC.expKoef) * CC.linKoef # INVERTED!!!
-
-        correction_Angle = CC.MaxCorrection if correction_Angle > CC.MaxCorrection else correction_Angle
-
-        if error < 0:
-            print("target to right")
-        else:
-            print("target to left")
-        print('err: ',round(error, 2),'avrg: ', round(num, 2),'result: ', round(correction_Angle, 3))
-        return correction_Angle
+        RightMotor.run(left_speed)
+        LeftMotor.run(right_speed)
 
 def Follow_Mechanical():
     global Fixing
@@ -140,7 +126,7 @@ def Sort_Func( DetectedColor, sort ): # sorts the ping pong balls
             )
             Back_Direction = 'blue'
         else:
-            print("ERROR: unknown color: ", DetectedColor) # quite common - TODO: change sth to make it rarer
+            #print("ERROR: unknown color: ", DetectedColor) # quite common - TODO: change sth to make it rarer
             Now_Sorting = False
     else:
         Sort_Clock.resume()
@@ -166,6 +152,8 @@ def sign(a): # return a mathematical sign of a given number ( + 0 - )
 ForcedTurn = False
 Drive_Clock = StopWatch()
 Fixing = 0 # zero.. everything ok; 1 or -1 ... a problem - trying to drive back
+previous_error = 0
+integral = 0
 
 Drive_Clock.pause()
 Drive_Clock.reset()
@@ -180,7 +168,6 @@ Sort_Clock.reset()
 
 Game_Clock = StopWatch()
 
-CC.StageValues[1] = UlraSensor.distance()/10
 
 
 while True: # change to True to run
@@ -214,19 +201,33 @@ while True: # change to True to run
 
     # stop the program detection
     if FrontBtn.pressed() or ForcedTurn:
+        # reseting driving clock
         Drive_Clock.pause()
         Drive_Clock.reset()
+
+        # reseting variables
+        previous_error = 0
+        integral = 0
         Fixing = 0
+
+        
+        # stoping with the robot
+        if CC.DrivingStage in CC.UltraFollowStages:
+            LeftMotor.stop()
+            RightMotor.stop()
+        else:
+            robot.stop()
 
         CC.DrivingStage += 1
         # forced stop
         if CC.DrivingStage == CC.StopAt:
             break
-
-        robot.stop()
+        
+        # turning
         Ev3.speaker.beep()
         ServoTurn(400,-90)
 
+        # specific driving stage things
         if CC.DrivingStage == 4:
             robot.reset()
         elif CC.DrivingStage == 5:
@@ -235,9 +236,7 @@ while True: # change to True to run
 
     if   CC.DrivingStage == 1: ## Sensor follow
         # Following wall with infrared sensor
-        angle = Follow_Ultra( CC.DrivingStage )
-
-        robot.drive(True_Drive_Speed, angle)
+        Follow_Ultra( CC.DrivingStage )
     elif CC.DrivingStage == 2: ## Mechanical follow
         Follow_Mechanical()
     elif CC.DrivingStage == 3: ## Mechanical follow

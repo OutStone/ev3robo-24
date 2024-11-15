@@ -1,4 +1,4 @@
-DriveSpeed = 200 # in mm/s
+DriveSpeed = 300 # in mm/s
 DrivingStage = 1 # changes with every turn
 
 DistanceSensor_Offset = 10 # in cm from the ball eating part
@@ -6,7 +6,7 @@ StopAt = 2
 
 Do_ColorSort = True 
 StageValues = {
-    1 : 72 - DistanceSensor_Offset, # Wall distance in cm 
+    1 : 70, #- DistanceSensor_Offset, # Wall distance in cm 
     2 : None,
     3 : None,
     4 : 280, # Drive distance in mm
@@ -15,6 +15,7 @@ StageValues = {
     7 : None 
     # for eight I will need a drive distance again    
 }
+UltraFollowStages = [1,5]
 
 ##--##--## Constants for sorting 
 SortSpeed = 1000 # in deg/s
@@ -25,8 +26,12 @@ SortAngle = {
 }
 
 ##--##--## Constants for following wall with a sensor ##--##--##
-linKoef = 0.05
-expKoef = 3 
+proportial_gain = 2.5
+
+integral_gain = 0.001
+derivative_gain = 0
+
+
 
 DistanceAvrg = []
 Values_in_Avrg = 5 # 10 for infraRed
