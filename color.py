@@ -27,7 +27,7 @@ FrontBtn = TouchSensor( RC.Buttons['front'] )
 
 ##--##--##--## CHECKING THE COLORS ##--##--## 
 
-# sorts the ping pong balls based on highest rgb value - red or blue
+# sorts the ping pong balls
 def Sort_Func( DetectedColor, sort ):
     global Now_Sorting, Back_Direction
     if int(Clock.time()) != 0:

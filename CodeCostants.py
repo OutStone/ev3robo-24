@@ -1,11 +1,12 @@
-DriveSpeed = 800 # in mm/s
+DriveSpeed = 200 # in mm/s
 DrivingStage = 1 # changes with every turn
 
 DistanceSensor_Offset = 10 # in cm from the ball eating part
+StopAt = 2
 
 Do_ColorSort = True 
 StageValues = {
-    1 : 70 - DistanceSensor_Offset, # Wall distance in cm 
+    1 : 72 - DistanceSensor_Offset, # Wall distance in cm 
     2 : None,
     3 : None,
     4 : 280, # Drive distance in mm
@@ -30,11 +31,14 @@ expKoef = 3
 DistanceAvrg = []
 Values_in_Avrg = 5 # 10 for infraRed
 MaxCorrection = 70
+FarAwayAvrg = []
+
+Toleration = 5 # in cm
 
 ##--##--## Constants for mechanical following ##--##--##
 FollowAngle = {
-    'ok' : -5,
-    'btn-off' : -15
+    'ok' : 1,
+    'btn-off' : -25
 }
 ##--##--## Constants for turning function  ##--##--##
 TurnErr = 10/9 #CHECK: check at the competition
