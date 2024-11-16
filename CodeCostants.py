@@ -26,10 +26,10 @@ SortAngle = {
 }
 
 ##--##--## Constants for following wall with a sensor ##--##--##
-proportial_gain = 2.5
+proportial_gain = 6
 
-integral_gain = 0.001
-derivative_gain = 0
+integral_gain = 0 # useles for our needs
+derivative_gain = 40
 
 
 
