@@ -2,11 +2,13 @@ DriveSpeed = 300 # in mm/s
 DrivingStage = 1 # changes with every turn
 
 DistanceSensor_Offset = 10 # in cm from the ball eating part
-StopAt = 2
+
+TestingTurn_ProblemArea = [3,7] # TESTING ONLY
+StopAt = -1                     # TESTING ONLY
 
 Do_ColorSort = True 
 StageValues = {
-    1 : 70, #- DistanceSensor_Offset, # Wall distance in cm 
+    1 : 70 - DistanceSensor_Offset, #- DistanceSensor_Offset, # Wall distance in cm 
     2 : None,
     3 : None,
     4 : 280, # Drive distance in mm
@@ -25,20 +27,11 @@ SortAngle = {
     'blue' : 12 ## 40 with reversed gear ration (small to big)
 }
 
+LoopTime = 20
 ##--##--## Constants for following wall with a sensor ##--##--##
-proportial_gain = 6
-
+proportial_gain = 5
 integral_gain = 0 # useles for our needs
-derivative_gain = 40
-
-
-
-DistanceAvrg = []
-Values_in_Avrg = 5 # 10 for infraRed
-MaxCorrection = 70
-FarAwayAvrg = []
-
-Toleration = 5 # in cm
+derivative_gain = 50
 
 ##--##--## Constants for mechanical following ##--##--##
 FollowAngle = {

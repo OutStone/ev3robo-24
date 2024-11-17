@@ -13,34 +13,33 @@ import RoboConstants as RC
 ##--##--##--## CODE CONSTANTS ##--##--##--##
 import CodeCostants as CC
 
-##--##--##--## ROBO SET UP ##--##--## 
-Ev3 = EV3Brick()
+##--##--##--## ROBO SET UP ##--##--##
+if True:
+    Ev3 = EV3Brick()
 
-# Motors
-SortingMotor = Motor( RC.Motors['sort'],positive_direction = Direction.COUNTERCLOCKWISE )
-LeftMotor = Motor( RC.Motors['left'],positive_direction = Direction.COUNTERCLOCKWISE )
-RightMotor = Motor( RC.Motors['right'],positive_direction = Direction.COUNTERCLOCKWISE )
+    # Motors
+    SortingMotor = Motor( RC.Motors['sort'],positive_direction = Direction.COUNTERCLOCKWISE )
+    LeftMotor = Motor( RC.Motors['left'],positive_direction = Direction.COUNTERCLOCKWISE )
+    RightMotor = Motor( RC.Motors['right'],positive_direction = Direction.COUNTERCLOCKWISE )
 
-robot = DriveBase( LeftMotor, RightMotor, RC.Wheel_Diameter, RC.Axle_Track )
+    robot = DriveBase( LeftMotor, RightMotor, RC.Wheel_Diameter, RC.Axle_Track )
 
-# Sensors
-FrontBtn = TouchSensor( RC.Buttons['front'] )
-SideBtn = TouchSensor( RC.Buttons['side'] )
+    # Sensors
+    FrontBtn = TouchSensor( RC.Buttons['front'] )
+    SideBtn = TouchSensor( RC.Buttons['side'] )
 
-ColorSensor = ColorSensor( RC.ColorSensor_port )
+    ColorSensor = ColorSensor( RC.ColorSensor_port )
 
-# Gyro = GyroSensor( RC.Gyro_port )
-# InfraSensor = InfraredSensor( RC.InfraSensor_port )
-UlraSensor = UltrasonicSensor( RC.UlraSensor_port )
-
+    # Gyro = GyroSensor( RC.Gyro_port )
+    # InfraSensor = InfraredSensor( RC.InfraSensor_port )
+    UlraSensor = UltrasonicSensor( RC.UlraSensor_port )
 
 ##--##--##--## Driving Funcions ##--##--##--##
-
 def ServoTurn( Speed, Angle ): # in deg/s & deg
     # equation for number of wheel turns ( x )
     # x = (Turning radius/wheel radius) * (turning angle/360 deg)
 
-    reverse_dist = 40 # in mm
+    reverse_dist = 80 # in mm
 
     robot.straight(-1*reverse_dist)
     robot.stop()
@@ -61,19 +60,22 @@ def ServoTurn( Speed, Angle ): # in deg/s & deg
 
     robot.stop()
 
-def Follow_Ultra(Stage):
+def Follow_Ultra(target):
         global integral, previous_error
         dist = UlraSensor.distance()/10
+
         print(round(dist, 3))
-        error = CC.StageValues[Stage] - dist
+
+        error = target - dist
+
         integral += error
         derivative = error - previous_error
 
         correction = CC.proportial_gain * error + CC.integral_gain * integral + CC.derivative_gain * derivative
         previous_error = error
 
-        left_speed = True_Drive_Speed + correction
-        right_speed = True_Drive_Speed - correction
+        left_speed = CC.DriveSpeed + correction
+        right_speed = CC.DriveSpeed - correction
 
         RightMotor.run(left_speed)
         LeftMotor.run(right_speed)
@@ -81,18 +83,18 @@ def Follow_Ultra(Stage):
 def Follow_Mechanical():
     global Fixing
     if SideBtn.pressed(): # if True then we are directly next to wall
-        robot.drive(True_Drive_Speed, CC.FollowAngle['ok'])
+        robot.drive(CC.DriveSpeed, CC.FollowAngle['ok'])
         Fixing = 0
     else: # if True then we are directly next to wall
         if not Fixing:
             Drive_Clock.reset()
             Drive_Clock.resume()
             Fixing = 1
-            robot.drive(True_Drive_Speed, CC.FollowAngle['btn-off'])
+            robot.drive(CC.DriveSpeed, CC.FollowAngle['btn-off'])
         elif Drive_Clock.time() > 1000:
-            robot.drive(True_Drive_Speed, 0)
+            robot.drive(CC.DriveSpeed, 0)
 
-##--##--##--## CHECKING THE COLORS ##--##--## 
+##--##--##--## working with colors ##--##--## 
 def Sort_Func( DetectedColor, sort ): # sorts the ping pong balls
     global Now_Sorting, Back_Direction
     if int(Sort_Clock.time()) != 0:
@@ -147,32 +149,32 @@ def sign(a): # return a mathematical sign of a given number ( + 0 - )
         return 1
 
 ##--##--##--## GAME LOOP ##--##--##--##
+if True: # set up of variables
+    # driving
+    ForcedTurn = False # substitutes for a button press -> iniciates a robot turn
+    Fixing = 0 # zero.. everything ok 1 ... a problem - trying to drive back to target
 
-# driving
-ForcedTurn = False
-Drive_Clock = StopWatch()
-Fixing = 0 # zero.. everything ok; 1 or -1 ... a problem - trying to drive back
-previous_error = 0
-integral = 0
+    # ultrasonic wall follow
+    previous_error = 0
+    integral = 0
 
-Drive_Clock.pause()
-Drive_Clock.reset()
+    Drive_Clock = StopWatch() # measuring robot turn angle in mechanical follow
+    Drive_Clock.pause()
+    Drive_Clock.reset()
 
-# color sorting
-Now_Sorting = False
-Back_Direction = None
+    # color sorting
+    Now_Sorting = False
+    Back_Direction = None
 
-Sort_Clock = StopWatch()
-Sort_Clock.pause()
-Sort_Clock.reset()
+    Sort_Clock = StopWatch() # for stopping sorting motor (TODO: test if I can stop based on motor angle)
+    Sort_Clock.pause()
+    Sort_Clock.reset()
 
-Game_Clock = StopWatch()
+    Game_Clock = StopWatch() # for game timing
+        
+    Cycle_Clock = StopWatch() # for stable game loops
 
-
-
-while True: # change to True to run
-    if Game_Clock.time() < 1000:
-        True_Drive_Speed = Game_Clock.time()/1000 * CC.DriveSpeed
+while True: # game loop
 
     # color detection
     DetectedColor = ColorSensor.color()
@@ -211,20 +213,25 @@ while True: # change to True to run
         Fixing = 0
 
         
-        # stoping with the robot
+        # stoping the robot after ulrasonic wall follow  x  after evrth. else
         if CC.DrivingStage in CC.UltraFollowStages:
             LeftMotor.stop()
             RightMotor.stop()
         else:
             robot.stop()
 
+        
         CC.DrivingStage += 1
+
         # forced stop
         if CC.DrivingStage == CC.StopAt:
             break
         
         # turning
         Ev3.speaker.beep()
+        if CC.DrivingStage in CC.TestingTurn_ProblemArea:
+            print('                     problem area')
+            robot.straight(-60)
         ServoTurn(400,-90)
 
         # specific driving stage things
@@ -233,10 +240,10 @@ while True: # change to True to run
         elif CC.DrivingStage == 5:
             ForcedTurn = False
 
-
+    # driving stage logic
     if   CC.DrivingStage == 1: ## Sensor follow
         # Following wall with infrared sensor
-        Follow_Ultra( CC.DrivingStage )
+        Follow_Ultra( CC.StageValues[CC.DrivingStage] )
     elif CC.DrivingStage == 2: ## Mechanical follow
         Follow_Mechanical()
     elif CC.DrivingStage == 3: ## Mechanical follow
@@ -251,3 +258,14 @@ while True: # change to True to run
         dist = UlraSensor.distance()
         print('wall distance after last turn: ', dist)
         break
+
+        # making a constant time drive loop 
+    
+    # constant time program cycle
+    if Cycle_Clock.time() < CC.LoopTime: # spare time -> waits
+        wait(CC.LoopTime - Cycle_Clock.time())
+    else: # not enought time
+        print('\033Err: cycle took to long!\033') # printing in red color
+        print(Cycle_Clock.time())
+    
+    Cycle_Clock.reset()
