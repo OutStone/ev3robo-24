@@ -35,27 +35,17 @@ if True:
     UlraSensor = UltrasonicSensor( RC.UlraSensor_port )
 
 ##--##--##--## Driving Funcions ##--##--##--##
-def ServoTurn( Speed, Angle ): # in deg/s & deg
-    # equation for number of wheel turns ( x )
-    # x = (Turning radius/wheel radius) * (turning angle/360 deg)
-
-    reverse_dist = 80 # in mm
-
-    robot.straight(-1*reverse_dist)
+def ServoTurn(left, right, speed): # in deg/s & deg
     robot.stop()
 
-    Radius_Ratio = RC.Axle_Track/(RC.Wheel_Diameter/2)
-    Angle_Fraction = Angle/360
+    Angle_left = (RC.Axle_Track/(4*RC.Wheel_Diameter)) * left * 180*-1
+    Angle_right = (RC.Axle_Track/(4*RC.Wheel_Diameter)) * right * 180
 
-    if Angle > 0: # turning left - left wheel stands
-        Right_Angle = Can_Right * (Angle_Fraction * Radius_Ratio) * 360 * CC.TurnErr
-        print("zatacim do leva", Right_Angle)
+    Speed_left = speed * left
+    Speed_right = speed * right
 
-        RightMotor.run_angle( Speed,Right_Angle )
-    else: # turning right
-        Left_Angle = (Angle_Fraction * Radius_Ratio) * 360 * -1  * CC.TurnErr
-        print("zatacim do prava", Left_Angle)
-        LeftMotor.run_angle( Speed,Left_Angle  )
+    RightMotor.run_angle( Speed_right, Angle_right,wait=False )
+    LeftMotor.run_angle( Speed_left, Angle_left )
     print("konec zataceni")
 
     robot.stop()
@@ -72,7 +62,7 @@ def Follow_Ultra(target):
         derivative = error - previous_error
 
         correction = CC.proportial_gain * error + CC.integral_gain * integral + CC.derivative_gain * derivative
-        previous_error = error
+        previous_error = error # nice
 
         left_speed = CC.DriveSpeed + correction
         right_speed = CC.DriveSpeed - correction
@@ -229,10 +219,7 @@ while True: # game loop
         
         # turning
         Ev3.speaker.beep()
-        if CC.DrivingStage in CC.TestingTurn_ProblemArea:
-            print('                     problem area')
-            robot.straight(-60)
-        ServoTurn(400,-90)
+        ServoTurn(-2,3,-60)
 
         # specific driving stage things
         if CC.DrivingStage == 4:
