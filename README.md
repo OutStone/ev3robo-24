@@ -14,6 +14,10 @@ Firstly, we will drive the robot in a spiral to colect all the ping pong balls t
   <image src='mapa1.jpg' align='center' width='400'/>
 </p>
 
+How do we force the robot to drive in a spiral?
+It's simple - you divide the spiral into multiple straight lines, each with it's specific way how to drive throught it.
+For the rest of this project I will refer to the spiral segments as game stages. In total tehe will be more than 10 of them, most of which will the robot drive throught by mechanicaly following a wall with kind of a arm. Some other game stages will be passed via keeping a constant distance from a wall with a ultrasonic sensor.
+
 # Coding Intro
 
 This whole project is being made and will be made in micropython whith the use of a EV3 micropython library
