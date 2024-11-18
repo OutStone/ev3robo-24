@@ -14,8 +14,8 @@ Buttons = {
 ColorSensor_port = Port.S3
 Gyro_port = Port.S3 # Not on robot
 
-InfraSensor_port = Port.S2
-UlraSensor_port = Port.S2 # Not on robot
+InfraSensor_port = Port.S2 # Not on robot
+UlraSensor_port = Port.S2
 
 Wheel_Diameter = 55 # in milimeters
 Axle_Track = 130 # in mm - small testing robo had just 76 mm

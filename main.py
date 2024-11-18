@@ -162,6 +162,10 @@ if True: # set up of variables
     Cycle_Clock.pause()
     Cycle_Clock.reset()
 
+    Dumping_Clock = StopWatch()
+    Dumping_Clock.pause()
+    Dumping_Clock.reset()
+
 Start = False
 while True:
     if FrontBtn.pressed():
@@ -207,6 +211,7 @@ while True: # game loop
         Drive_Clock.reset()
 
         # reseting variables
+        ForcedTurn = False
         previous_error = 0
         integral = 0
         Fixing = 0
@@ -228,16 +233,19 @@ while True: # game loop
         
         # turning
         Ev3.speaker.beep()
-        if CC.DrivingStage != 6:
-            ServoTurn(-2,3,-60)
-        else:
+        if CC.DrivingStage in CC.DoNotTurn:
+            pass
+        elif CC.DrivingStage in CC.ReverseTurns:
             ServoTurn(-2,3,60)
+        else:
+            ServoTurn(-2,3,-60)
 
         # specific driving stage things
         if CC.DrivingStage == 4:
             robot.reset()
-        elif CC.DrivingStage == 5:
-            ForcedTurn = False
+        
+        Dumping_Clock.reset()
+        Dumping_Clock.resume()
 
     # driving stage logic
     if   CC.DrivingStage == 1: ## Sensor follow
@@ -254,9 +262,15 @@ while True: # game loop
             ForcedTurn = True
     elif CC.DrivingStage == 5: ## Sensor follow
         Follow_Ultra( CC.StageValues[CC.DrivingStage] )
-    elif CC.DrivingStage == 6:
+    elif CC.DrivingStage == 6: ## Backing to dump the balls
         robot.straight(CC.StageValues[ CC.DrivingStage ])
         ForcedTurn = True
+    elif CC.DrivingStage == 7: ## Dumping balls
+        # TODO: dump them!
+        if Dumping_Clock.time() >= CC.DumpTime:
+            ForcedTurn = True
+    elif CC.DrivingStage == 8: ## Mechanical follow
+        Follow_Mechanical()
     else:
         break
 

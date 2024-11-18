@@ -13,10 +13,13 @@ StageValues = {
     4 : 280 - 50, # Drive distance in mm
     5 : 42 - DistanceSensor_Offset, # Wall distance in cm # real value after last test 510mm
     6 : -420,
-    7 : None 
-    # for eight I will need a drive distance again    
+    7 : None, # dumping balls
+    8 : None,
+    9 : None
 }
 UltraFollowStages = [1,5]
+ReverseTurns = [6,8]
+DoNotTurn = [7]
 
 ##--##--## Constants for sorting 
 SortSpeed = 500 # in deg/s
@@ -25,9 +28,10 @@ SortAngle = {
     'blue' :-500 ## 12 with reversed gear ration
 }
 
-##--##--## Time Constants ##--##--##
+##--##--## Time Constants (in ms) ##--##--##
 LoopTime = 20
-GameLenght = 90 * 1000 # in ms
+DumpTime = 3 * 1000
+GameLenght = 90 * 1000
 
 ##--##--## Constants for following wall with a sensor ##--##--##
 proportial_gain = 5
