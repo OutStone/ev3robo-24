@@ -28,14 +28,10 @@ FrontBtn = TouchSensor( RC.Buttons['front'] )
 ##--##--##--## CHECKING THE COLORS ##--##--## 
 
 # sorts the ping pong balls
-def Sort_Func( DetectedColor, sort ):
+def Sort_Func( DetectedColor, sort ): # sorts the ping pong balls
     global Now_Sorting, Back_Direction
-    if int(Clock.time()) != 0:
-       print("we have a problem with Stopwatch not being at zero after a pause and reset, for easier debuging here is the time: ", Clock.time())
-    
     if sort:
         if DetectedColor == Color.RED:
-            Clock.resume()
             Now_Sorting = True
             
             print('red')
@@ -48,7 +44,6 @@ def Sort_Func( DetectedColor, sort ):
             Back_Direction = 'red'
 
         elif DetectedColor == Color.BLUE:
-            Clock.resume()
             Now_Sorting = True
             
             print('blue')
@@ -61,59 +56,43 @@ def Sort_Func( DetectedColor, sort ):
             )
             Back_Direction = 'blue'
         else:
-            print("ERROR: unknown color: ", DetectedColor) # quite common - TODO: change sth to make it rarer
+            print("ERROR: unknown color: ", DetectedColor) # quite common - TODO: OPT change sth to make it rarer
             Now_Sorting = False
     else:
-        Clock.resume()
         Now_Sorting = True
         
         print('part 2 sort')
         # no need to sort by color - balls are just picked up into the same container to be throwed on oponent's side  
         SortingMotor.run_angle(CC.SortSpeed, CC.SortAngle['red'], then=Stop.BRAKE, wait=False)
 
-##--##--##--## Other func ##--##--##--##
-def sign(a): # return a mathematical sign of a given number ( + 0 - )
-    a = int(a)
-    if a == 0:
-        return 0
-    elif a > 0:
-        return -1
-    else:
-        return 1
-
 ##--##--##--## GAME LOOP ##--##--##--##
 Now_Sorting = False
 Back_Direction = None
-Clock = StopWatch()
-Clock.pause()
-Clock.reset()
-# RightMotor.run(int(CC.DriveSpeed/2))
 
 while True:
     # color detection
     DetectedColor = ColorSensor.color()
-
     if DetectedColor != None and not Now_Sorting:
         Sort_Func( DetectedColor, CC.Do_ColorSort )
 
-    if Now_Sorting and int(Clock.time()) > CC.SortTime:
+    if Now_Sorting:
         if Back_Direction:
-            print('changing in time: ', Clock.time(), ' now going to starting place')
-            Clock.reset()
+            if abs(SortingMotor.angle()) >= abs(CC.SortAngle[Back_Direction]):
 
-            SortingMotor.run_angle(
-                CC.SortSpeed,
-                -1* CC.SortAngle[Back_Direction] + sign(CC.SortAngle[Back_Direction])*5, # the second part makes the motor move on the way back a bit less
-                then=Stop.BRAKE,
-                wait=False
-            )
-            Back_Direction = None
-        else:
-            Clock.pause()
-            print('changing bool "Now_Sorting" in time: ', Clock.time())
-            Clock.reset()
+                SortingMotor.run_angle(
+                    CC.SortSpeed,
+                    -1* CC.SortAngle[Back_Direction], # the second part makes the motor move on the way back a bit less
+                    then=Stop.BRAKE,
+                    wait=False
+                )
+                print('changing sort direction')
 
-            Now_Sorting = False
+                Back_Direction = None
+        elif not Back_Direction:
+            if abs(SortingMotor.angle()) <= 5:
+                print('sorting finished')
+                Now_Sorting = False
+
 
     
     # break the loop
