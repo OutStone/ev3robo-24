@@ -73,16 +73,16 @@ def Follow_Ultra(target):
 def Follow_Mechanical():
     global Fixing
     if SideBtn.pressed(): # if True then we are directly next to wall
-        robot.drive(CC.DriveSpeed * 2/RC.Wheel_Diameter, CC.FollowAngle['ok'])
+        robot.drive(CC.DriveSpeed * 3.14 * RC.Wheel_Diameter/360, CC.FollowAngle['ok'])
         Fixing = 0
     else: # if True then we are directly next to wall
         if not Fixing:
             Drive_Clock.reset()
             Drive_Clock.resume()
             Fixing = 1
-            robot.drive(CC.DriveSpeed * 2/RC.Wheel_Diameter, CC.FollowAngle['btn-off'])
+            robot.drive(CC.DriveSpeed * 3.14 * RC.Wheel_Diameter/360, CC.FollowAngle['btn-off'])
         elif Drive_Clock.time() > 1000:
-            robot.drive(CC.DriveSpeed * 2/RC.Wheel_Diameter, 0)
+            robot.drive(CC.DriveSpeed * 3.14 * RC.Wheel_Diameter/360, 0)
 
 ##--##--##--## working with colors ##--##--## 
 def Sort_Func( DetectedColor, sort ): # sorts the ping pong balls
@@ -155,10 +155,27 @@ if True: # set up of variables
     Sort_Clock.reset()
 
     Game_Clock = StopWatch() # for game timing
+    Game_Clock.pause()
+    Game_Clock.reset()
         
     Cycle_Clock = StopWatch() # for stable game loops
+    Cycle_Clock.pause()
+    Cycle_Clock.reset()
+
+Start = False
+while True:
+    if FrontBtn.pressed():
+        Start = True
+    elif Start:
+        Game_Clock.resume()
+        Cycle_Clock.resume()
+        break
 
 while True: # game loop
+    
+    if Game_Clock.time() >= CC.GameLenght:
+        Ev3.speaker.beep()
+        break
 
     # color detection
     DetectedColor = ColorSensor.color()
@@ -185,9 +202,9 @@ while True: # game loop
 
     # stop the program detection
     if FrontBtn.pressed() or ForcedTurn:
-       # reseting driving clock
-       Drive_Clock.pause()
-       Drive_Clock.reset()
+        # reseting driving clock
+        Drive_Clock.pause()
+        Drive_Clock.reset()
 
         # reseting variables
         previous_error = 0
