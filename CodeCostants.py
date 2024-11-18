@@ -3,8 +3,7 @@ DrivingStage = 1 # changes with every turn
 
 DistanceSensor_Offset = 10 # in cm from the ball eating part
 
-TestingTurn_ProblemArea = [3,7] # TESTING ONLY
-StopAt = -1                     # TESTING ONLY
+StopAt = -1 # TESTING ONLY
 
 Do_ColorSort = True 
 StageValues = {
@@ -13,18 +12,17 @@ StageValues = {
     3 : None,
     4 : 280, # Drive distance in mm
     5 : 42 - DistanceSensor_Offset, # Wall distance in cm # real value after last test 510mm
-    6 : None,
+    6 : -420,
     7 : None 
     # for eight I will need a drive distance again    
 }
 UltraFollowStages = [1,5]
 
 ##--##--## Constants for sorting 
-SortSpeed = 1000 # in deg/s
-SortTime = 370 # in miliseconds; 70 ms is a safety gap (sometimes the values are close to 340) 
+SortSpeed = 500 # in deg/s
 SortAngle = {
-    'red' : -70, ## -205 with reversed gear ratio (small to big)
-    'blue' : 12 ## 40 with reversed gear ration (small to big)
+    'red' : 1000, ## -70 with reversed gear ratio
+    'blue' :-500 ## 12 with reversed gear ration
 }
 
 LoopTime = 20
@@ -33,9 +31,12 @@ proportial_gain = 5
 integral_gain = 0 # useles for our needs
 derivative_gain = 50
 
+Kp2 = 6
+Ki2 = 0 #-0.01
+Kd2 = 70
 ##--##--## Constants for mechanical following ##--##--##
 FollowAngle = {
-    'ok' : 1,
+    'ok' : 3,
     'btn-off' : -25
 }
 ##--##--## Constants for turning function  ##--##--##

@@ -37,24 +37,14 @@ def Follow_Ultra(target):
         integral += error
         derivative = error - previous_error
 
-        correction = CC.proportial_gain * error + CC.integral_gain * integral + CC.derivative_gain * derivative
+        correction = CC.Kp2 * error + CC.Ki2 * integral + CC.Kd2 * derivative
         previous_error = error
 
-        left_speed = CC.DriveSpeed + correction
-        right_speed = CC.DriveSpeed - correction
+        left_speed = (CC.DriveSpeed + correction) *-1  # INVERTED!!
+        right_speed = (CC.DriveSpeed - correction) *-1 # INVERTED!!
 
         RightMotor.run(left_speed)
         LeftMotor.run(right_speed)
-
-##--##--##--## Other func ##--##--##--##
-def sign(a): # return a mathematical sign of a given number ( + 0 - )
-    a = int(a)
-    if a == 0:
-        return 0
-    elif a > 0:
-        return -1
-    else:
-        return 1
 
 ##--##--##--## GAME LOOP ##--##--##--##
 
@@ -66,7 +56,7 @@ Cycle_Clock = StopWatch()
 LoopTime = 20
 
 
-while True: # change to True to run
+while True:
     # stop the program detection
     if FrontBtn.pressed():
         LeftMotor.stop()
@@ -76,7 +66,7 @@ while True: # change to True to run
         break
         
 
-    Follow_Ultra( 50 )
+    Follow_Ultra( CC.StageValues[5] )
 
     # making a constant time drive loop 
     if Cycle_Clock.time() < LoopTime:
