@@ -113,7 +113,7 @@ def Sort_Func( DetectedColor, sort ): # sorts the ping pong balls
             )
             Back_Direction = 'blue'
         else:
-            print("ERROR: unknown color: ", DetectedColor) # quite common - TODO: change sth to make it rarer
+            print("ERROR: unknown color: ", DetectedColor) # quite common - TODO: OPT change sth to make it rarer
             Now_Sorting = False
     else:
         Now_Sorting = True
@@ -121,16 +121,6 @@ def Sort_Func( DetectedColor, sort ): # sorts the ping pong balls
         print('part 2 sort')
         # no need to sort by color - balls are just picked up into the same container to be throwed on oponent's side  
         SortingMotor.run_angle(CC.SortSpeed, CC.SortAngle['red'], then=Stop.BRAKE, wait=False)
-
-##--##--##--## Other func ##--##--##--##
-def sign(a): # return a mathematical sign of a given number ( + 0 - )
-    a = int(a)
-    if a == 0:
-        return 0
-    elif a > 0:
-        return -1
-    else:
-        return 1
 
 ##--##--##--## GAME LOOP ##--##--##--##
 if True: # set up of variables
@@ -149,10 +139,6 @@ if True: # set up of variables
     # color sorting
     Now_Sorting = False
     Back_Direction = None
-
-    Sort_Clock = StopWatch() # for stopping sorting motor (TODO: test if I can stop based on motor angle)
-    Sort_Clock.pause()
-    Sort_Clock.reset()
 
     Game_Clock = StopWatch() # for game timing
     Game_Clock.pause()
@@ -267,14 +253,13 @@ while True: # game loop
         ForcedTurn = True
     elif CC.DrivingStage == 7: ## Dumping balls
         # TODO: dump them!
+        print('dumping')
         if Dumping_Clock.time() >= CC.DumpTime:
             ForcedTurn = True
     elif CC.DrivingStage == 8: ## Mechanical follow
         Follow_Mechanical()
     else:
         break
-
-        # making a constant time drive loop 
     
     # constant time program cycle
     if Cycle_Clock.time() < CC.LoopTime: # spare time -> waits

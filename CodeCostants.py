@@ -12,7 +12,7 @@ StageValues = {
     3 : None,
     4 : 280 - 50, # Drive distance in mm
     5 : 42 - DistanceSensor_Offset, # Wall distance in cm # real value after last test 510mm
-    6 : -420,
+    6 : -400,
     7 : None, # dumping balls
     8 : None,
     9 : None
