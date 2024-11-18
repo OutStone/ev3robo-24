@@ -77,7 +77,7 @@ while True:
 
     if Now_Sorting:
         if Back_Direction:
-            if abs(SortingMotor.angle()) >= abs(CC.SortAngle[Back_Direction]):
+            if abs(SortingMotor.angle()) >= abs(CC.SortAngle[Back_Direction]) - CC.SortToleration:
 
                 SortingMotor.run_angle(
                     CC.SortSpeed,
@@ -88,8 +88,11 @@ while True:
                 print('changing sort direction')
 
                 Back_Direction = None
+            else:
+                print(abs(SortingMotor.angle()) - abs(CC.SortAngle[Back_Direction]))
         elif not Back_Direction:
-            if abs(SortingMotor.angle()) <= 5:
+            if abs(SortingMotor.angle()) <= CC.SortToleration:
+                SortingMotor.brake()
                 print('sorting finished')
                 Now_Sorting = False
 

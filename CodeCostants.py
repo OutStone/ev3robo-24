@@ -24,9 +24,10 @@ DoNotTurn = [7]
 ##--##--## Constants for sorting 
 SortSpeed = 500 # in deg/s
 SortAngle = {
-    'red' : 1000, ## -70 with reversed gear ratio
-    'blue' :-500 ## 12 with reversed gear ration
+    'red' : 1000,
+    'blue' :-500
 }
+SortToleration = 10 # in deg
 
 ##--##--## Time Constants (in ms) ##--##--##
 LoopTime = 20
@@ -34,9 +35,9 @@ DumpTime = 3 * 1000
 GameLenght = 90 * 1000
 
 ##--##--## Constants for following wall with a sensor ##--##--##
-proportial_gain = 5
+proportial_gain = 8
 integral_gain = 0 # useles for our needs
-derivative_gain = 50
+derivative_gain = 300
 
 Kp2 = 6
 Ki2 = 0 #-0.01
