@@ -1,5 +1,6 @@
 DriveSpeed = 300 # in mm/s
-DrivingStage = 1 # changes with every turn
+DrivingStage = 7 # changes with every turn
+GamePart = 1
 
 DistanceSensor_Offset = 10 # in cm from the ball eating part
 
@@ -27,13 +28,20 @@ SortAngle = {
     'red' : -1000,
     'blue' : 400
 }
-SortToleration = 10 # in deg
+SortToleration = 30 # in deg
 
-DumpPoint = -1300
+DropPoints = {
+    'red': -1200,
+    'blue' : 650
+}
+    ## sorting calibation
+StartPos = -850
+Force = 40
+
 ##--##--## Time Constants (in ms) ##--##--##
 LoopTime = 20
 DumpTime = 3 * 1000
-GameLenght = 90 * 1000
+GameLenght = 88 * 1000
 
 ##--##--## Constants for following wall with a sensor ##--##--##
 proportial_gain = 5

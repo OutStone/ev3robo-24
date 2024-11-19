@@ -54,8 +54,6 @@ def Follow_Ultra(target):
         global integral, previous_error
         dist = UlraSensor.distance()/10
 
-        print(round(dist, 3))
-
         error = target - dist
 
         integral += error
@@ -97,43 +95,45 @@ def Reverse_Follow_Mechanical():
         robot.stop()
         print('FORCED TURN')
         ForcedTurn = True
-##--##--##--## working with colors ##--##--## 
-def Sort_Func( DetectedColor, sort ): # sorts the ping pong balls
-    global Now_Sorting, Back_Direction
-    if sort:
-        if DetectedColor == Color.RED:
-            Now_Sorting = True
-            
-            print('red')
-            SortingMotor.run_angle(
-                CC.SortSpeed,
-                CC.SortAngle['red'],
-                then=Stop.BRAKE,
-                wait=False
-            )
-            Back_Direction = 'red'
 
-        elif DetectedColor == Color.BLUE:
-            Now_Sorting = True
-            
-            print('blue')
-            
-            SortingMotor.run_angle(
-                CC.SortSpeed,
-                CC.SortAngle['blue'],
-                then=Stop.BRAKE,
-                wait=False
-            )
-            Back_Direction = 'blue'
-        else:
-            #print("ERROR: unknown color: ", DetectedColor) # quite common - TODO: OPT change sth to make it rarer
-            Now_Sorting = False
-    else:
-        Now_Sorting = True
+##--##--##--## working with colors ##--##--## 
+def Sort_Func( DetectedColor): # sorts the ping pong balls
+    if DetectedColor == Color.RED:
+        robot.stop()
         
-        print('part 2 sort')
-        # no need to sort by color - balls are just picked up into the same container to be throwed on oponent's side  
-        SortingMotor.run_angle(CC.SortSpeed, CC.SortAngle['red'], then=Stop.BRAKE, wait=False)
+        print('red')
+        SortingMotor.run_angle(
+            CC.SortSpeed,
+            CC.SortAngle['red'],
+            then=Stop.BRAKE,
+            wait=True
+        )
+        SortingMotor.run_angle(
+            CC.SortSpeed,
+            CC.SortAngle['red'] * -1,
+            then=Stop.BRAKE,
+            wait=True
+        )
+
+    elif DetectedColor == Color.BLUE:
+        robot.stop()
+        
+        print('blue')
+        SortingMotor.run_angle(
+            CC.SortSpeed,
+            CC.SortAngle['blue'],
+            then=Stop.BRAKE,
+            wait=True
+        )
+        SortingMotor.run_angle(
+            CC.SortSpeed,
+            CC.SortAngle['blue'] * -1,
+            then=Stop.BRAKE,
+            wait=True
+        )
+
+    else:
+        print("                 ERROR: unknown color: ", DetectedColor) # quite common - TODO: OPT change sth to make it rarer
 
 ##--##--##--## GAME LOOP ##--##--##--##
 if True: # set up of variables
@@ -149,10 +149,6 @@ if True: # set up of variables
     Drive_Clock.pause()
     Drive_Clock.reset()
 
-    # color sorting
-    Now_Sorting = False
-    Back_Direction = None
-
     Game_Clock = StopWatch() # for game timing
     Game_Clock.pause()
     Game_Clock.reset()
@@ -164,13 +160,16 @@ if True: # set up of variables
     Dumping_Clock = StopWatch()
     Dumping_Clock.pause()
     Dumping_Clock.reset()
+##--##--##--## sign func ##--##--##--##
 
-##--##--##--## Set up of sorting sys ##--##--##--##
-SortingMotor.run_until_stalled(CC.SortSpeed, Stop.COAST, 40)
+def sign(a):
+    return 1 if a > 0 else -1
+##--##--##--## calibration of sorting systems ##--##--##--##
+SortingMotor.run_until_stalled(CC.SortSpeed, Stop.COAST, CC.Force)
 wait(1000)
 SortingMotor.run_angle(
     CC.SortSpeed,
-    -700,
+    CC.StartPos,
     then=Stop.BRAKE,
     wait=True
 )
@@ -188,31 +187,15 @@ while True:
 while True: # game loop
     
     if Game_Clock.time() >= CC.GameLenght:
+        print('90s of game time gone')
         Ev3.speaker.beep()
         break
 
     # color detection
     DetectedColor = ColorSensor.color()
-    if DetectedColor != None and not Now_Sorting:
-        Sort_Func( DetectedColor, CC.Do_ColorSort )
+    if DetectedColor != None and CC.GamePart == 1:
+        Sort_Func( DetectedColor)
 
-    if Now_Sorting:
-        if Back_Direction:
-            if abs(SortingMotor.angle()) >= abs(CC.SortAngle[Back_Direction]):
-
-                SortingMotor.run_angle(
-                    CC.SortSpeed,
-                    -1* CC.SortAngle[Back_Direction], # the second part makes the motor move on the way back a bit less
-                    then=Stop.BRAKE,
-                    wait=False
-                )
-                print('changing sort direction')
-
-                Back_Direction = None
-        elif not Back_Direction:
-            if abs(SortingMotor.angle()) <= 5:
-                print('sorting finished')
-                Now_Sorting = False
 
     # stop the program detection
     if FrontBtn.pressed() or ForcedTurn:
@@ -277,19 +260,15 @@ while True: # game loop
     elif CC.DrivingStage == 6: ## Mechanical follow backwards & distance measurement
         Reverse_Follow_Mechanical()
     elif CC.DrivingStage == 7: ## Dumping balls
-        SortingMotor.run_angle(CC.SortSpeed/2,CC.DumpPoint, then=Stop.BRAKE, wait=True)
+        SortingMotor.run_angle(CC.SortSpeed/2,CC.DropPoints['red'], then=Stop.BRAKE, wait=True)
         wait(CC.DumpTime)
         ForcedTurn = True
     elif CC.DrivingStage == 8: ## Mechanical follow
         Follow_Mechanical()
     elif CC.DrivingStage == 9: ## Dumping balls
-        SortingMotor.run_until_stalled(CC.SortSpeed, Stop.COAST, 40)
-        Dumping_Clock.resume()
-
-        print('dumping')
-        if Dumping_Clock.time() >= CC.DumpTime:
-            ForcedTurn = True
-
+        SortingMotor.run_angle(CC.SortSpeed/2,CC.DropPoints['blue'] + CC.DropPoints['red']*-1, then=Stop.BRAKE, wait=True)
+        wait(CC.DumpTime)
+        ForcedTurn = True
     else:
         break
     
@@ -297,6 +276,7 @@ while True: # game loop
     if Cycle_Clock.time() < CC.LoopTime: # spare time -> waits
         wait(CC.LoopTime - Cycle_Clock.time())
     else: # not enought time
+        pass
         print('\033Err: cycle took to long!\033') # printing in red color
         print(Cycle_Clock.time())
     
