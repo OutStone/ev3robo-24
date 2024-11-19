@@ -62,7 +62,7 @@ def Follow_Ultra(target):
         derivative = error - previous_error
 
         correction = CC.proportial_gain * error + CC.integral_gain * integral + CC.derivative_gain * derivative
-        previous_error = error # nice
+        previous_error = error
 
         left_speed = CC.DriveSpeed + correction
         right_speed = CC.DriveSpeed - correction
@@ -91,9 +91,9 @@ def Reverse_Follow_Mechanical():
         Drive_Clock.resume()
         Fixing = 1
         robot.drive(CC.DriveSpeed * 3.14 * RC.Wheel_Diameter/360 * -1, CC.FollowAngle['btn-off']/1.3)
-    elif Drive_Clock.time() > 1000 and Drive_Clock.time() < StageValues[6]: # from 1000 to 4000
+    elif Drive_Clock.time() > 1000 and Drive_Clock.time() < CC.StageValues[6]: # from 1000 to 4000
         robot.drive(CC.DriveSpeed * 3.14 * RC.Wheel_Diameter/360 * -1, 0)
-    elif Drive_Clock.time() > StageValues[6]: # from 4000
+    elif Drive_Clock.time() > CC.StageValues[6]: # from 4000
         robot.stop()
         print('FORCED TURN')
         ForcedTurn = True
@@ -170,7 +170,7 @@ SortingMotor.run_until_stalled(CC.SortSpeed, Stop.COAST, 40)
 wait(1000)
 SortingMotor.run_angle(
     CC.SortSpeed,
-    -600,
+    -700,
     then=Stop.BRAKE,
     wait=True
 )
@@ -277,12 +277,9 @@ while True: # game loop
     elif CC.DrivingStage == 6: ## Mechanical follow backwards & distance measurement
         Reverse_Follow_Mechanical()
     elif CC.DrivingStage == 7: ## Dumping balls
-        SortingMotor.run_until_stalled(-1*CC.SortSpeed, Stop.COAST, 40)
-        Dumping_Clock.resume()
-
-        print('dumping')
-        if Dumping_Clock.time() >= CC.DumpTime:
-            ForcedTurn = True
+        SortingMotor.run_angle(CC.SortSpeed/2,CC.DumpPoint, then=Stop.BRAKE, wait=True)
+        wait(CC.DumpTime)
+        ForcedTurn = True
     elif CC.DrivingStage == 8: ## Mechanical follow
         Follow_Mechanical()
     elif CC.DrivingStage == 9: ## Dumping balls

@@ -12,7 +12,7 @@ StageValues = {
     3 : None,
     4 : 280 - 50, # Drive distance in mm
     5 : 42 - DistanceSensor_Offset, # Wall distance in cm # real value after last test 510mm
-    6 : 4*1000, # time for backing
+    6 : 5*1000, # time for backing
     7 : None, # dumping balls
     8 : None,
     9 : None
@@ -22,22 +22,23 @@ ReverseTurns = [6,8]
 DoNotTurn = [7]
 
 ##--##--## Constants for sorting 
-SortSpeed = 500 # in deg/s
+SortSpeed = 1000 # in deg/s
 SortAngle = {
     'red' : -1000,
-    'blue' : 500
+    'blue' : 400
 }
 SortToleration = 10 # in deg
 
+DumpPoint = -1300
 ##--##--## Time Constants (in ms) ##--##--##
 LoopTime = 20
 DumpTime = 3 * 1000
 GameLenght = 90 * 1000
 
 ##--##--## Constants for following wall with a sensor ##--##--##
-proportial_gain = 8
+proportial_gain = 5
 integral_gain = 0 # useles for our needs
-derivative_gain = 300
+derivative_gain = 50
 
 Kp2 = 6
 Ki2 = 0 #-0.01
