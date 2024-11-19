@@ -24,11 +24,15 @@ DoNotTurn = [7]
 ##--##--## Constants for sorting 
 SortSpeed = 500 # in deg/s
 SortAngle = {
-    'red' : 1000,
-    'blue' :-500
+    'red' : -1000,
+    'blue' : 500
 }
 SortToleration = 10 # in deg
 
+Dump = {
+    'red' : - 1100,
+    'blue': 600 + 1100
+}
 ##--##--## Time Constants (in ms) ##--##--##
 LoopTime = 20
 DumpTime = 3 * 1000

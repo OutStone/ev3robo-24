@@ -70,19 +70,19 @@ def Follow_Ultra(target):
         RightMotor.run(left_speed)
         LeftMotor.run(right_speed)
 
-def Follow_Mechanical():
+def Follow_Mechanical(Direction):
     global Fixing
     if SideBtn.pressed(): # if True then we are directly next to wall
-        robot.drive(CC.DriveSpeed * 3.14 * RC.Wheel_Diameter/360, CC.FollowAngle['ok'])
+        robot.drive(CC.DriveSpeed * 3.14 * RC.Wheel_Diameter/360 * Direction, CC.FollowAngle['ok'] * Direction)
         Fixing = 0
     else: # if True then we are directly next to wall
         if not Fixing:
             Drive_Clock.reset()
             Drive_Clock.resume()
             Fixing = 1
-            robot.drive(CC.DriveSpeed * 3.14 * RC.Wheel_Diameter/360, CC.FollowAngle['btn-off'])
+            robot.drive(CC.DriveSpeed * 3.14 * RC.Wheel_Diameter/360 * Direction, CC.FollowAngle['btn-off'] * Direction)
         elif Drive_Clock.time() > 1000:
-            robot.drive(CC.DriveSpeed * 3.14 * RC.Wheel_Diameter/360, 0)
+            robot.drive(CC.DriveSpeed * 3.14 * RC.Wheel_Diameter/360 * Direction, 0)
 
 ##--##--##--## working with colors ##--##--## 
 def Sort_Func( DetectedColor, sort ): # sorts the ping pong balls
@@ -227,37 +227,42 @@ while True: # game loop
             ServoTurn(-2,3,-60)
 
         # specific driving stage things
-        if CC.DrivingStage == 4:
+        if CC.DrivingStage == 4 or CC.DrivingStage == 6:
             robot.reset()
-        
+
+        Dumping_Clock.pause()
         Dumping_Clock.reset()
-        Dumping_Clock.resume()
 
     # driving stage logic
     if   CC.DrivingStage == 1: ## Sensor follow
         Follow_Ultra( CC.StageValues[CC.DrivingStage] )
     elif CC.DrivingStage == 2: ## Mechanical follow
-        Follow_Mechanical()
+        Follow_Mechanical(+1)
     elif CC.DrivingStage == 3: ## Mechanical follow
         Follow_Mechanical()
     elif CC.DrivingStage == 4: ## Mechanical follow with distnace measurement
         driven = robot.distance()
-        Follow_Mechanical()
+        Follow_Mechanical(+1)
 
         if driven >= CC.StageValues[4]:
             ForcedTurn = True
     elif CC.DrivingStage == 5: ## Sensor follow
         Follow_Ultra( CC.StageValues[CC.DrivingStage] )
-    elif CC.DrivingStage == 6: ## Backing to dump the balls
-        robot.straight(CC.StageValues[ CC.DrivingStage ])
-        ForcedTurn = True
+    elif CC.DrivingStage == 6: ## Mechanical follow backwards & distance measurement
+        driven = robot.distance()
+        Follow_Mechanical(-1)
+
+        if driven >= CC.StageValues[6]:
+            ForcedTurn = True
     elif CC.DrivingStage == 7: ## Dumping balls
-        # TODO: dump them!
+        SortingMotor.run_angle(CC.SortSpeed, CC.Dump['red'], then=Stop.BRAKE, wait=True)
+        Dumping_Clock.resume()
+
         print('dumping')
         if Dumping_Clock.time() >= CC.DumpTime:
             ForcedTurn = True
     elif CC.DrivingStage == 8: ## Mechanical follow
-        Follow_Mechanical()
+        Follow_Mechanical(+1)
     else:
         break
     
