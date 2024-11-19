@@ -12,7 +12,7 @@ StageValues = {
     3 : None,
     4 : 280 - 50, # Drive distance in mm
     5 : 42 - DistanceSensor_Offset, # Wall distance in cm # real value after last test 510mm
-    6 : -400,
+    6 : 4*1000, # time for backing
     7 : None, # dumping balls
     8 : None,
     9 : None
@@ -29,10 +29,6 @@ SortAngle = {
 }
 SortToleration = 10 # in deg
 
-Dump = {
-    'red' : - 1100,
-    'blue': 600 + 1100
-}
 ##--##--## Time Constants (in ms) ##--##--##
 LoopTime = 20
 DumpTime = 3 * 1000

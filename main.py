@@ -70,20 +70,33 @@ def Follow_Ultra(target):
         RightMotor.run(left_speed)
         LeftMotor.run(right_speed)
 
-def Follow_Mechanical(Direction):
+def Follow_Mechanical():
     global Fixing
     if SideBtn.pressed(): # if True then we are directly next to wall
-        robot.drive(CC.DriveSpeed * 3.14 * RC.Wheel_Diameter/360 * Direction, CC.FollowAngle['ok'] * Direction)
+        robot.drive(CC.DriveSpeed * 3.14 * RC.Wheel_Diameter/360, CC.FollowAngle['ok'])
         Fixing = 0
     else: # if True then we are directly next to wall
         if not Fixing:
             Drive_Clock.reset()
             Drive_Clock.resume()
             Fixing = 1
-            robot.drive(CC.DriveSpeed * 3.14 * RC.Wheel_Diameter/360 * Direction, CC.FollowAngle['btn-off'] * Direction)
+            robot.drive(CC.DriveSpeed * 3.14 * RC.Wheel_Diameter/360, CC.FollowAngle['btn-off'])
         elif Drive_Clock.time() > 1000:
-            robot.drive(CC.DriveSpeed * 3.14 * RC.Wheel_Diameter/360 * Direction, 0)
+            robot.drive(CC.DriveSpeed * 3.14 * RC.Wheel_Diameter/360, 0)
 
+def Reverse_Follow_Mechanical():
+    global Fixing, ForcedTurn
+    if not Fixing:
+        Drive_Clock.reset()
+        Drive_Clock.resume()
+        Fixing = 1
+        robot.drive(CC.DriveSpeed * 3.14 * RC.Wheel_Diameter/360 * -1, CC.FollowAngle['btn-off']/1.3)
+    elif Drive_Clock.time() > 1000 and Drive_Clock.time() < StageValues[6]: # from 1000 to 4000
+        robot.drive(CC.DriveSpeed * 3.14 * RC.Wheel_Diameter/360 * -1, 0)
+    elif Drive_Clock.time() > StageValues[6]: # from 4000
+        robot.stop()
+        print('FORCED TURN')
+        ForcedTurn = True
 ##--##--##--## working with colors ##--##--## 
 def Sort_Func( DetectedColor, sort ): # sorts the ping pong balls
     global Now_Sorting, Back_Direction
@@ -113,7 +126,7 @@ def Sort_Func( DetectedColor, sort ): # sorts the ping pong balls
             )
             Back_Direction = 'blue'
         else:
-            print("ERROR: unknown color: ", DetectedColor) # quite common - TODO: OPT change sth to make it rarer
+            #print("ERROR: unknown color: ", DetectedColor) # quite common - TODO: OPT change sth to make it rarer
             Now_Sorting = False
     else:
         Now_Sorting = True
@@ -152,7 +165,18 @@ if True: # set up of variables
     Dumping_Clock.pause()
     Dumping_Clock.reset()
 
+##--##--##--## Set up of sorting sys ##--##--##--##
+SortingMotor.run_until_stalled(CC.SortSpeed, Stop.COAST, 40)
+wait(1000)
+SortingMotor.run_angle(
+    CC.SortSpeed,
+    -600,
+    then=Stop.BRAKE,
+    wait=True
+)
+
 Start = False
+print('press the button!!')
 while True:
     if FrontBtn.pressed():
         Start = True
@@ -220,7 +244,9 @@ while True: # game loop
         # turning
         Ev3.speaker.beep()
         if CC.DrivingStage in CC.DoNotTurn:
-            pass
+            print("skipping turning")
+            robot.straight(75)
+
         elif CC.DrivingStage in CC.ReverseTurns:
             ServoTurn(-2,3,60)
         else:
@@ -237,32 +263,36 @@ while True: # game loop
     if   CC.DrivingStage == 1: ## Sensor follow
         Follow_Ultra( CC.StageValues[CC.DrivingStage] )
     elif CC.DrivingStage == 2: ## Mechanical follow
-        Follow_Mechanical(+1)
+        Follow_Mechanical()
     elif CC.DrivingStage == 3: ## Mechanical follow
         Follow_Mechanical()
     elif CC.DrivingStage == 4: ## Mechanical follow with distnace measurement
         driven = robot.distance()
-        Follow_Mechanical(+1)
+        Follow_Mechanical()
 
         if driven >= CC.StageValues[4]:
             ForcedTurn = True
     elif CC.DrivingStage == 5: ## Sensor follow
         Follow_Ultra( CC.StageValues[CC.DrivingStage] )
     elif CC.DrivingStage == 6: ## Mechanical follow backwards & distance measurement
-        driven = robot.distance()
-        Follow_Mechanical(-1)
-
-        if driven >= CC.StageValues[6]:
-            ForcedTurn = True
+        Reverse_Follow_Mechanical()
     elif CC.DrivingStage == 7: ## Dumping balls
-        SortingMotor.run_angle(CC.SortSpeed, CC.Dump['red'], then=Stop.BRAKE, wait=True)
+        SortingMotor.run_until_stalled(-1*CC.SortSpeed, Stop.COAST, 40)
         Dumping_Clock.resume()
 
         print('dumping')
         if Dumping_Clock.time() >= CC.DumpTime:
             ForcedTurn = True
     elif CC.DrivingStage == 8: ## Mechanical follow
-        Follow_Mechanical(+1)
+        Follow_Mechanical()
+    elif CC.DrivingStage == 9: ## Dumping balls
+        SortingMotor.run_until_stalled(CC.SortSpeed, Stop.COAST, 40)
+        Dumping_Clock.resume()
+
+        print('dumping')
+        if Dumping_Clock.time() >= CC.DumpTime:
+            ForcedTurn = True
+
     else:
         break
     
