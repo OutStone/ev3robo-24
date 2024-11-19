@@ -165,6 +165,7 @@ if True: # set up of variables
 def sign(a):
     return 1 if a > 0 else -1
 ##--##--##--## calibration of sorting systems ##--##--##--##
+# automated tuning process
 SortingMotor.run_until_stalled(CC.SortSpeed, Stop.COAST, CC.Force)
 wait(1000)
 SortingMotor.run_angle(
@@ -174,9 +175,35 @@ SortingMotor.run_angle(
     wait=True
 )
 
+# waits a operator to start tuning process
+Start = False
+print('press the button to tune!!')
+while True: # btn start
+    if FrontBtn.pressed():
+        Start = True
+    elif Start:
+        break
+
+while True: # automated tuning process n.2
+    DetectedColor = ColorSensor.color()
+    if DetectedColor != Color.BLUE: # searches for a color of the ball
+        SortingMotor.run(CC.SortSpeed/4)
+    else: # ball found -> runs for additional 50 deg
+        SortingMotor.brake()
+        Ev3.speaker.beep()
+        Ev3.speaker.beep()
+        SortingMotor.run_angle(
+            CC.SortSpeed/4,
+            50,
+            then=Stop.BRAKE,
+            wait=True
+        )
+        break
+
+# starting the run with a btn press
 Start = False
 print('press the button!!')
-while True:
+while True: # waits for a btn
     if FrontBtn.pressed():
         Start = True
     elif Start:
@@ -225,10 +252,10 @@ while True: # game loop
             break
         
         # turning
-        Ev3.speaker.beep()
         if CC.DrivingStage in CC.DoNotTurn:
             print("skipping turning")
-            robot.straight(75)
+            if CC.DrivingStage == 7:
+                robot.straight(75)
 
         elif CC.DrivingStage in CC.ReverseTurns:
             ServoTurn(-2,3,60)
@@ -269,7 +296,21 @@ while True: # game loop
         SortingMotor.run_angle(CC.SortSpeed/2,CC.DropPoints['blue'] + CC.DropPoints['red']*-1, then=Stop.BRAKE, wait=True)
         wait(CC.DumpTime)
         ForcedTurn = True
+    elif CC.DrivingStage == 10:
+        if not CC.RunSecondPart:
+            Ev3.speaker.beep()
+            break
+        driven = robot.distance()
+        Follow_Mechanical()
+
+        if driven >= CC.StageValues[10]:
+            ForcedTurn = True
+    elif CC.DrivingStage == 11:
+        robot.drive(CC.DriveSpeed * 3.14 * RC.Wheel_Diameter/360,0)
+    elif CC.DrivingStage == 12: ## Mechanical follow
+        Follow_Mechanical()
     else:
+        Ev3.speaker.beep()
         break
     
     # constant time program cycle

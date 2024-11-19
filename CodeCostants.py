@@ -1,6 +1,7 @@
 DriveSpeed = 300 # in mm/s
-DrivingStage = 7 # changes with every turn
+DrivingStage = 1 # changes with every turn
 GamePart = 1
+RunSecondPart = True
 
 DistanceSensor_Offset = 10 # in cm from the ball eating part
 
@@ -16,26 +17,28 @@ StageValues = {
     6 : 5*1000, # time for backing
     7 : None, # dumping balls
     8 : None,
-    9 : None
+    9 : None,
+    10: 700, # Drive distance in mm
+    11: 560
 }
 UltraFollowStages = [1,5]
 ReverseTurns = [6,8]
-DoNotTurn = [7]
+DoNotTurn = [7,9,10]
 
 ##--##--## Constants for sorting 
 SortSpeed = 1000 # in deg/s
 SortAngle = {
-    'red' : -1000,
+    'red' : -1100,
     'blue' : 400
 }
 SortToleration = 30 # in deg
 
 DropPoints = {
-    'red': -1200,
+    'red': -1300,
     'blue' : 650
 }
     ## sorting calibation
-StartPos = -850
+StartPos = -1000
 Force = 40
 
 ##--##--## Time Constants (in ms) ##--##--##
