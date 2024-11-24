@@ -27,39 +27,18 @@ FrontBtn = TouchSensor( RC.Buttons['front'] )
 
 ##--##--##--## CHECKING THE COLORS ##--##--## 
 
-DetectedColor = ColorSensor.color()
-print(DetectedColor)
-
-print('red')
+SortingMotor.run_until_stalled(CC.SortSpeed, Stop.COAST, CC.Force)
+wait(100)
 SortingMotor.run_angle(
     CC.SortSpeed,
-    CC.DropPoints['red'],
+    CC.StartPos,
     then=Stop.BRAKE,
     wait=True
 )
-wait(1000)
-
-SortingMotor.run_angle(
-    CC.SortSpeed,
-    CC.DropPoints['red'] * -1,
-    then=Stop.BRAKE,
-    wait=True
-)
-
-
-print('blue')
-
-SortingMotor.run_angle(
-    CC.SortSpeed,
-    CC.DropPoints['blue'],
-    then=Stop.BRAKE,
-    wait=True
-)
-wait(1000)
-
-SortingMotor.run_angle(
-    CC.SortSpeed,
-    CC.DropPoints['blue'] * -1,
-    then=Stop.BRAKE,
-    wait=True
-)
+Start = False
+while True:
+    if FrontBtn.pressed():
+        print(ColorSensor.color())
+        Start = True
+    elif Start:
+        break

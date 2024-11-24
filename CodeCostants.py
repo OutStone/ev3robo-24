@@ -17,34 +17,35 @@ StageValues = {
     6 : 5*1000, # time for backing
     7 : None, # dumping balls
     8 : None,
-    9 : None,
+    9 : None, 
     10: 700, # Drive distance in mm
-    11: 560
+    11: 560,
+    12:None
 }
 UltraFollowStages = [1,5]
 ReverseTurns = [6,8]
-DoNotTurn = [7,9,10]
+DoNotTurn = [7,10,11]
 
 ##--##--## Constants for sorting 
 SortSpeed = 1000 # in deg/s
 SortAngle = {
-    'red' : -1100,
-    'blue' : 400
+    'red' : -950,
+    'blue' : 500
 }
 SortToleration = 30 # in deg
 
 DropPoints = {
-    'red': -1300,
-    'blue' : 650
+    'red': -1200,
+    'blue' : 1300
 }
     ## sorting calibation
-StartPos = -1000
+StartPos = -900
 Force = 40
 
 ##--##--## Time Constants (in ms) ##--##--##
 LoopTime = 20
 DumpTime = 3 * 1000
-GameLenght = 88 * 1000
+GameLenght = 85 * 1000
 
 ##--##--## Constants for following wall with a sensor ##--##--##
 proportial_gain = 5
