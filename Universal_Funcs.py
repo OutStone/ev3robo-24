@@ -68,7 +68,7 @@ def Follow_Mech_SetUp():
 # the function itself
 def Follow_Ultra(target):
         global integral, UNI_previous_error
-        dist = UlraSensor.distance()/10
+        dist = UlraSensor.distance()
 
         error = target - dist
 
