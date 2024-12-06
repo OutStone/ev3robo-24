@@ -93,43 +93,44 @@ def Movement(speeds,Pos): # return new position
 
         # Driven angle
         drivenDistance = ((speeds['left'] + speeds['right'])/2) * GAMECYCLE_TIME
-        drivenAngle = 360 * (drivenDistance) / (2 * radius_fromCentre * math.pi)
+        if radius_fromCentre == 0:
+            Pos['angle'] += 360 * (drivenDistance) / (2 * radius_right * math.pi)
+            return Pos
+        else:
+            drivenAngle = 360 * (drivenDistance) / (2 * radius_fromCentre * math.pi)
 
-        Pos['angle'] += drivenAngle
+            Pos['angle'] += drivenAngle
 
-        # New position
-        NewX = Pos['x'] + radius_fromCentre * cos(beforeAngle) - radius_fromCentre * cos(Pos['angle'])
-        NewY = Pos['y'] - radius_fromCentre * sin(beforeAngle) + radius_fromCentre * sin(Pos['angle'])
-        
+            # New position
+            NewX = Pos['x'] + radius_fromCentre * cos(beforeAngle) - radius_fromCentre * cos(Pos['angle'])
+            NewY = Pos['y'] - radius_fromCentre * sin(beforeAngle) + radius_fromCentre * sin(Pos['angle'])
+            
 
-        return {
-            'x' : NewX,
-            'y' : NewY,
-            'angle': Pos['angle']
-        }
+            return {
+                'x' : NewX,
+                'y' : NewY,
+                'angle': Pos['angle']
+            }
 
 def Drive(StartPos, Koefs, numOfCycles):
     trajectory = []
     robot = StartPos
     averageErr = 0
     lastErr = None
+    ErrSum = 0
     trajectory.append(  [robot['x'],robot['y']] )
 
     for cycle in range(numOfCycles):
         Ultra = UltrasonicPos(robot,SENSOROFFSET)
-        Speeds,Err = PD(lastErr,robot,Ultra,Koefs)
+        Speeds,Err = PD(lastErr,ErrSum,robot,Ultra,Koefs)
         robot = Movement(Speeds,robot)
         lastErr = Err
-        
+        ErrSum += Err
         averageErr += abs(Err) # used for rating
 
         trajectory.append(  [robot['x'],robot['y']] )
 
-    if averageErr != 0:
-        score = 1/(averageErr**2) ##robot['y']
-    else:
-        score = 1 #robot['y']
-    return score,trajectory
+    return averageErr,trajectory
 
 # drawing the trajectory
 def _from_rgb(rgb):
@@ -160,11 +161,12 @@ def graph(points,color):
 # the evolution part
 def evolution():
     InGen = 100
-    genNum = 600
+    genNum = 100
     GensToResetStart = 5
-    DrawingFrequency = 15
-    RangeP = 0.2
-    RangeD = 0.4
+    DrawingFrequency = 1
+    PrecisionFrequency = 100
+    RangeP = 10
+    RangeD = 20
     CyclesInRun = 200
     StartPos = {
         'x' : 400, # robo pos from wall
@@ -172,14 +174,14 @@ def evolution():
         'angle' : 0
     }
 
-    KoefList = [ { 'p': 1*random.uniform(0,10),'d': 1*random.uniform(0,10)} for i in range(InGen)]
+    KoefList = [ { 'p': 1*random.uniform(0,100),'d': 1*random.uniform(0,100)} for i in range(InGen)]
 
     for gen in range(genNum):
         minErrOfGen = None
 
         for KoefSet in KoefList:
             err,trajectory = Drive(StartPos,KoefSet,CyclesInRun)
-            if minErrOfGen == None or err > minErrOfGen:
+            if minErrOfGen == None or err < minErrOfGen:
                 Best = {
                     'err' : err,
                     'koefs' : KoefSet,
@@ -193,8 +195,9 @@ def evolution():
         
         Kp = Best['koefs']['p']
         Kd = Best['koefs']['d']
+        Ki = Best['koefs']['i']
         KoefList = [ {'p': Kp*random.uniform(1-RangeP,1+RangeP),
-                    'd': Kd + Kd*random.uniform(1-RangeD,1+RangeD)}
+                    'd': Kd*random.uniform(1-RangeD,1+RangeD)}
                     for i in range(InGen-1)
                     ]
         KoefList.append({
@@ -202,15 +205,14 @@ def evolution():
             'd' : Kd
         })
 
-        if Kp == 0:
-            KoefList[1]['p'] = 1
-        if Kd == 0:
-            KoefList[2]['d'] = 1
         if gen % DrawingFrequency == 0:
             ColorStep = round((255/(genNum/DrawingFrequency)) * gen/DrawingFrequency)
             drawColor = (0,100, ColorStep)
             graph(Best['trajectory'], drawColor)
 
+        if gen % PrecisionFrequency == 0 and gen != 0:
+            RangeP /= 2
+            RangeD /= 2
         # if gen % GensToResetStart == 0 and gen != 0:
         #     minimum = 8#math.ceil(SENSOROFFSET['x']/100) + 1
         #     maximum = math.ceil(TARGET/100) + 5
