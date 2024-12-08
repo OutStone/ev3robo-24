@@ -5,7 +5,7 @@ import os
 os.remove("stats.txt") # ensures we have a clear text file
 file = open("stats.txt", "a")
 
-TARGET = 500 # in mm - every distance measurement is in MILIMETERS
+TARGET = 700 # in mm - every distance measurement is in MILIMETERS
 DRIVESPEED = 400#400 # deg/s - anglar turning speed of the wheels
 AXEL_TRACK = 100
 WHEEL_RADIUS = 50
@@ -31,20 +31,11 @@ def UltrasonicSensor(x,angle): #returns value from distance in the same format a
             return distance
 
 def UltrasonicPos(Pos,Off): # returns position of ultrasonic sensor
-    invert = 1
-
-    if Pos['angle'] > 90:
-        Pos['angle'] = 180 - Pos['angle']
-        invert = -1
-    elif Pos['angle'] < -90:
-        Pos['angle'] = -180 - Pos['angle']
-
-    deltaX = Off['x'] * cos(Pos['angle']) * invert + Off['y'] * sin(Pos['angle'])
-    deltaY = Off['x'] * sin(Pos['angle']) + invert * Off['y'] * cos(Pos['angle'])
 
     B = {
-        'x' : Pos['x'] + deltaX,
-        'y' : Pos['y'] + deltaY
+        'x' : Pos['x'] - cos(Pos['angle']) * Off['x']  + sin(Pos['angle']) * Off['y'],
+        'y' : Pos['y'] + sin(Pos['angle']) * Off['x'] +  cos(Pos['angle']) * Off['y']
+
     }
 
     return B
@@ -66,13 +57,14 @@ def PD(previous_error,Pos,Ultra, Koefs): # returns speeds of wheels and error va
         'left' : DRIVESPEED - correction,
         'right': DRIVESPEED + correction
     }
-    return [speeds,error]
+    return speeds,error
 
 def Movement(speeds,Pos): # return new position
     
     # converting speeds from angluar speed of the wheel to velocities
     speeds['left'] = 2 * WHEEL_RADIUS * math.pi * (speeds['left']/360)
     speeds['right'] = 2 * WHEEL_RADIUS * math.pi * (speeds['right']/360)
+
     if speeds['left'] - speeds['right'] == 0:
         distance = speeds['left'] * GAMECYCLE_TIME
         NewX = Pos['x'] + sin(Pos['angle']) * distance
@@ -112,25 +104,29 @@ def Movement(speeds,Pos): # return new position
                 'angle': Pos['angle']
             }
 
-def Drive(StartPos, Koefs, numOfCycles):
+def Scoring(Ultra,ScoreSum,cycle,Pos):
+    return (ScoreSum*cycle + abs(Ultra['x'] - TARGET))/(cycle + 1)
+
+
+def Drive(StartPos, Koefs, numOfCycles): # manages the looping of functions for simulating a driving robot
     trajectory = []
     robot = StartPos
-    averageErr = 0
     lastErr = None
-    ErrSum = 0
+    Score = 0
+    ErrList = []
     trajectory.append(  [robot['x'],robot['y']] )
 
     for cycle in range(numOfCycles):
         Ultra = UltrasonicPos(robot,SENSOROFFSET)
-        Speeds,Err = PD(lastErr,ErrSum,robot,Ultra,Koefs)
-        robot = Movement(Speeds,robot)
-        lastErr = Err
-        ErrSum += Err
-        averageErr += abs(Err) # used for rating
+        Speeds,err = PD(lastErr,robot,Ultra,Koefs)
 
+        robot = Movement(Speeds,robot)
+        Score = Scoring(Ultra,Score,cycle,robot)
+
+        #ErrList.append([err + 400,robot['y']])
         trajectory.append(  [robot['x'],robot['y']] )
 
-    return averageErr,trajectory
+    return Score,trajectory#,ErrList
 
 # drawing the trajectory
 def _from_rgb(rgb):
@@ -141,78 +137,81 @@ def _from_rgb(rgb):
 
 from tkinter import *
 
-win=Tk()
-win.geometry("1500x1000")
-canvas=Canvas(win, width=3000, height=1000)
-canvas.pack()
+DriveWin=Tk()
+DriveWin.title('Trajectories')
+DriveWin.geometry("1500x1000")
+DriveCanvas=Canvas(DriveWin, width=4000, height=1000)
+DriveCanvas.pack()
+
+# ErrWin = Tk()
+# ErrWin.title('err')
+# ErrCanvas=Canvas(ErrWin, width=4000, height=1000)
+# ErrCanvas.pack()
 
 StartColor = (0,100,0)
 MaxRGB = 255
 
 # target line
-canvas.create_line(0, TARGET - SENSOROFFSET['x'],  3000, TARGET - SENSOROFFSET['x'],fill=_from_rgb((255,0,0)),width=1)
+DriveCanvas.create_line(0, (TARGET - SENSOROFFSET['x'])/2,  3000, (TARGET - SENSOROFFSET['x'])/2,fill=_from_rgb((255,0,0)),width=1)
+# ErrCanvas.create_line(0, 400,  3000, 400,fill=_from_rgb((0,0,255)),width=1)
 
-def graph(points,color):
+def graph(points,color,window,canvas):
     for i in range(len(points)-1):
-        canvas.create_line(points[i][1]+100, points[i][0], points[i+1][1]+100, points[i+1][0],fill=_from_rgb(color),width=1)
-        win.update()
+        canvas.create_line(points[i][1]/2+100, points[i][0]/2, points[i+1][1]/2+100, points[i+1][0]/2,fill=_from_rgb(color),width=1)
+    window.update()
         
 
 # the evolution part
 def evolution():
-    InGen = 100
+    InGen = 400
     genNum = 100
     GensToResetStart = 5
-    DrawingFrequency = 1
+    DrawingFrequency = 5
     PrecisionFrequency = 100
-    RangeP = 10
-    RangeD = 20
-    CyclesInRun = 200
+    RangeP = 0.4
+    RangeD = 0.8
+    CyclesInRun = 500
     StartPos = {
         'x' : 400, # robo pos from wall
         'y' : 0,
         'angle' : 0
     }
 
-    KoefList = [ { 'p': 1*random.uniform(0,100),'d': 1*random.uniform(0,100)} for i in range(InGen)]
+    KoefList = [ { 'p': 1*random.uniform(0,1),'d': 1*random.uniform(0,10)} for i in range(InGen)]
 
     for gen in range(genNum):
-        minErrOfGen = None
+        minScoreOfGen = None
 
         for KoefSet in KoefList:
-            err,trajectory = Drive(StartPos,KoefSet,CyclesInRun)
-            if minErrOfGen == None or err < minErrOfGen:
+            score,trajectory = Drive(StartPos,KoefSet,CyclesInRun)
+            if minScoreOfGen == None or score < minScoreOfGen:
                 Best = {
-                    'err' : err,
+                    'score' : score,
                     'koefs' : KoefSet,
                     'trajectory' : trajectory
                 }
-                minErrOfGen = err
+                minScoreOfGen = score
 
-        print('best of gen',gen,'is',Best['err'],'and its koefs are', Best['koefs'])
+        print('best of gen',gen,'is',Best['score'],'and its koefs are', Best['koefs'])
         file.write(str(Best) + '\n')
 
         
         Kp = Best['koefs']['p']
         Kd = Best['koefs']['d']
-        Ki = Best['koefs']['i']
-        KoefList = [ {'p': Kp*random.uniform(1-RangeP,1+RangeP),
-                    'd': Kd*random.uniform(1-RangeD,1+RangeD)}
-                    for i in range(InGen-1)
+        
+        KoefList = [ {'p': Kp + Kp*random.uniform(-RangeP,+RangeP),
+                    'd': Kd + Kd*random.uniform(-RangeD,+RangeD)}
+                    for i in range(InGen)
                     ]
-        KoefList.append({
-            'p' : Kp,
-            'd' : Kd
-        })
 
         if gen % DrawingFrequency == 0:
             ColorStep = round((255/(genNum/DrawingFrequency)) * gen/DrawingFrequency)
             drawColor = (0,100, ColorStep)
-            graph(Best['trajectory'], drawColor)
+            graph(Best['trajectory'], drawColor,DriveWin,DriveCanvas)
 
-        if gen % PrecisionFrequency == 0 and gen != 0:
-            RangeP /= 2
-            RangeD /= 2
+        # if gen % PrecisionFrequency == 0 and gen != 0:
+        #     RangeP /= 2
+        #     RangeD /= 2
         # if gen % GensToResetStart == 0 and gen != 0:
         #     minimum = 8#math.ceil(SENSOROFFSET['x']/100) + 1
         #     maximum = math.ceil(TARGET/100) + 5
@@ -223,18 +222,21 @@ def evolution():
     print(Best)
 
 evolution()
-# err,trajectory = Drive({
+# score,trajectory = Drive({
 #         'x' : 400, # robo pos from wall
 #         'y' : 0,
 #         'angle' : 0
-#     },{'p':11.5, 'd': 12},
-#           200)
-# graph(trajectory,(0,0,255))
-# err,trajectory = Drive({
+#     },{'p':10, 'd': 12},
+#           300)
+# print(trajectory)
+# graph(trajectory,(0,0,255),DriveWin,DriveCanvas)
+# score,trajectory,ErrList = Drive({
 #         'x' : 400, # robo pos from wall
 #         'y' : 0,
 #         'angle' : 0
-#     },{'p': 11.55530954020414, 'd': 11.69120644342326},
+#     },{'p': 0.5, 'd': 5},
 #           200)
-# graph(trajectory,(0,255,0))
-win.mainloop()
+# print(score)
+# graph(trajectory,(0,255,0),DriveWin,DriveCanvas)
+# graph(ErrList,(255,0,0),ErrWin,ErrCanvas)
+DriveWin.mainloop()
