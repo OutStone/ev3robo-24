@@ -253,9 +253,15 @@ def evolution():
                 maximum = 10
                 StartPos['x'] = 100 * random.randint(minimum,maximum)
                 print('---start reset',StartPos['x']/100)
-
+    
     file.close()
     print(Best)
+    DriveCanvas.create_text(1200, 1000 - 400 + 20*0     , text="Linear koef",                   fill=_from_rgb((0,150,0)), font=('Helvetica 15 bold'))
+    DriveCanvas.create_text(1200, 1000 - 400 + 20*1     , text=str(round(Best['koefs']['p'],2)), fill=_from_rgb((0,150,0)), font=('Helvetica 15 bold'))
+    DriveCanvas.create_text(1200, 1000 - 400 + 20*2 + 10, text="Derivative koef",               fill=_from_rgb((0,0,150)), font=('Helvetica 15 bold'))
+    DriveCanvas.create_text(1200, 1000 - 400 + 20*3 + 10, text=str(round(Best['koefs']['d'],2)), fill=_from_rgb((0,0,150)), font=('Helvetica 15 bold'))
+    DriveCanvas.create_text(1200, 1000 - 400 + 20*4 + 20, text="Score",                         fill=_from_rgb((150,0,0)), font=('Helvetica 15 bold'))
+    DriveCanvas.create_text(1200, 1000 - 400 + 20*5 + 20, text=str(round(Best['score'],2)),     fill=_from_rgb((150,0,0)), font=('Helvetica 15 bold'))
 
 evolution()
 # score,trajectory = Drive({
