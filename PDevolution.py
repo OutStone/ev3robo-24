@@ -5,6 +5,7 @@ import os
 os.remove("stats.txt") # ensures we have a clear text file
 file = open("stats.txt", "a")
 
+# varibles for robot
 TARGET = 700 # in mm - every distance measurement is in MILIMETERS
 DRIVESPEED = 400#400 # deg/s - anglar turning speed of the wheels
 AXEL_TRACK = 100
@@ -105,7 +106,7 @@ def Movement(speeds,Pos): # return new position
             }
 
 def Scoring(Ultra,ScoreSum,cycle,Pos):
-    return (ScoreSum*cycle + abs(Ultra['x'] - TARGET))/(cycle + 1)
+    return (ScoreSum*cycle + (abs(Ultra['x'] - TARGET)/10)**2)/(cycle + 1)
 
 
 def Drive(StartPos, Koefs, numOfCycles): # manages the looping of functions for simulating a driving robot
@@ -118,7 +119,7 @@ def Drive(StartPos, Koefs, numOfCycles): # manages the looping of functions for 
 
     for cycle in range(numOfCycles):
         Ultra = UltrasonicPos(robot,SENSOROFFSET)
-        Speeds,err = PD(lastErr,robot,Ultra,Koefs)
+        Speeds,lastErr = PD(lastErr,robot,Ultra,Koefs)
 
         robot = Movement(Speeds,robot)
         Score = Scoring(Ultra,Score,cycle,robot)
@@ -143,47 +144,64 @@ DriveWin.geometry("1500x1000")
 DriveCanvas=Canvas(DriveWin, width=4000, height=1000)
 DriveCanvas.pack()
 
-# ErrWin = Tk()
-# ErrWin.title('err')
-# ErrCanvas=Canvas(ErrWin, width=4000, height=1000)
-# ErrCanvas.pack()
+GenWin = Tk()
+GenWin.title('err')
+GenCanvas=Canvas(GenWin, width=4000, height=1000)
+GenCanvas.pack()
 
 StartColor = (0,100,0)
 MaxRGB = 255
 
-# target line
+# target and visualization lines line
 DriveCanvas.create_line(0, (TARGET - SENSOROFFSET['x'])/2,  3000, (TARGET - SENSOROFFSET['x'])/2,fill=_from_rgb((255,0,0)),width=1)
-# ErrCanvas.create_line(0, 400,  3000, 400,fill=_from_rgb((0,0,255)),width=1)
+DriveCanvas.create_line(   0, 1000-250, 1000, 1000-250,fill=_from_rgb((0,0,0)),width=1)
+DriveCanvas.create_line(1000, 1000-500, 1000, 1000-250,fill=_from_rgb((0,0,0)),width=1)
+
+GenCanvas.create_line(  0, (TARGET - SENSOROFFSET['x'])/2,  3000, (TARGET - SENSOROFFSET['x'])/2,fill=_from_rgb((255,0,0)),width=1)
+GenCanvas.create_line(  0, (TARGET - SENSOROFFSET['x'])/2,  3000, (TARGET - SENSOROFFSET['x'])/2,fill=_from_rgb((255,0,0)),width=1)
 
 def graph(points,color,window,canvas):
     for i in range(len(points)-1):
         canvas.create_line(points[i][1]/2+100, points[i][0]/2, points[i+1][1]/2+100, points[i+1][0]/2,fill=_from_rgb(color),width=1)
     window.update()
-        
+
+def scoreGraph(val,gen,genNum,color,window,canvas):
+    lenght = 1000/genNum
+    canvas.create_line(lenght * gen,1000-(250 + val/2),lenght * (gen + 1),1000-(250 + val/2),fill=_from_rgb(color),width=1)
+    window.update()
 
 # the evolution part
 def evolution():
-    InGen = 400
+    InGen = 100
     genNum = 100
-    GensToResetStart = 5
-    DrawingFrequency = 5
-    PrecisionFrequency = 100
-    RangeP = 0.4
-    RangeD = 0.8
     CyclesInRun = 500
     StartPos = {
         'x' : 400, # robo pos from wall
         'y' : 0,
         'angle' : 0
     }
+    RangeP = 0.8
+    RangeD = 0.8
 
-    KoefList = [ { 'p': 1*random.uniform(0,1),'d': 1*random.uniform(0,10)} for i in range(InGen)]
+    MainDrawingFrequency = 1
+    GensToResetStart = None
+    PrecisionFrequency = None
+    DrawingEachTry = None
+    DrawingEachColor = (0,255,0)
+
+    KoefList = [ { 'p': 1*random.uniform(1-RangeP,1+RangeP),'d': 1*random.uniform(0,1)} for i in range(InGen)]
 
     for gen in range(genNum):
         minScoreOfGen = None
 
+        i = 0
         for KoefSet in KoefList:
             score,trajectory = Drive(StartPos,KoefSet,CyclesInRun)
+            if DrawingEachTry != None:
+                graph(trajectory, DrawingEachColor,GenWin,GenCanvas)
+                print(i)
+                i += 1
+            
             if minScoreOfGen == None or score < minScoreOfGen:
                 Best = {
                     'score' : score,
@@ -191,52 +209,69 @@ def evolution():
                     'trajectory' : trajectory
                 }
                 minScoreOfGen = score
+                print('change in best')
 
         print('best of gen',gen,'is',Best['score'],'and its koefs are', Best['koefs'])
         file.write(str(Best) + '\n')
 
+        scoreGraph(Best['score'],gen,genNum,(150,0,0),DriveWin,DriveCanvas) # score
+        scoreGraph(Best['koefs']['p']*200,gen,genNum,(0,150,0),DriveWin,DriveCanvas) # p koef
+        scoreGraph(Best['koefs']['d']*50,gen,genNum,(0,0,150),DriveWin,DriveCanvas) # d koef
         
         Kp = Best['koefs']['p']
         Kd = Best['koefs']['d']
         
-        KoefList = [ {'p': Kp + Kp*random.uniform(-RangeP,+RangeP),
-                    'd': Kd + Kd*random.uniform(-RangeD,+RangeD)}
+        KoefList = [ {'p': Kp*random.uniform(1-RangeP,1+RangeP),
+                    'd': Kd*random.uniform(1-RangeD,1+RangeD)}
                     for i in range(InGen)
                     ]
 
-        if gen % DrawingFrequency == 0:
-            ColorStep = round((255/(genNum/DrawingFrequency)) * gen/DrawingFrequency)
-            drawColor = (0,100, ColorStep)
-            graph(Best['trajectory'], drawColor,DriveWin,DriveCanvas)
+        if MainDrawingFrequency != None:
+            if gen % MainDrawingFrequency == 0:
+                ColorStep = round((255/(genNum/MainDrawingFrequency)) * gen/MainDrawingFrequency)
+                drawColor = (0,100, ColorStep)
+                graph(Best['trajectory'], drawColor,DriveWin,DriveCanvas)
+        if DrawingEachTry != None:
+            DrawingEachTry += 1
+            if DrawingEachTry == 1:
+                DrawingEachColor = (0,0,255)
+            if DrawingEachTry == 2:
+                sleep = input('go?:')
+                DrawingEachColor = (0,255,0)
+                GenCanvas.delete('all')
+                DrawingEachTry = 0
 
-        # if gen % PrecisionFrequency == 0 and gen != 0:
-        #     RangeP /= 2
-        #     RangeD /= 2
-        # if gen % GensToResetStart == 0 and gen != 0:
-        #     minimum = 8#math.ceil(SENSOROFFSET['x']/100) + 1
-        #     maximum = math.ceil(TARGET/100) + 5
-        #     StartPos['x'] = 100 * random.randint(minimum,maximum)
-        #     print('---start reset',StartPos['x']/100)
+        if PrecisionFrequency != None:
+            if gen % PrecisionFrequency == 0 and gen != 0:
+                RangeP /= 2
+                RangeD /= 2
+                print('---range reduced','p',RangeP,'d',RangeD)
+
+        if GensToResetStart != None:
+            if gen % GensToResetStart == 0 and gen != 0:
+                minimum = 3
+                maximum = 10
+                StartPos['x'] = 100 * random.randint(minimum,maximum)
+                print('---start reset',StartPos['x']/100)
 
     file.close()
     print(Best)
 
 evolution()
 # score,trajectory = Drive({
-#         'x' : 400, # robo pos from wall
+#         'x' : 400 + TARGET, # robo pos from wall
 #         'y' : 0,
 #         'angle' : 0
-#     },{'p':10, 'd': 12},
+#     },{'p': 1.0789589068008072, 'd': 5.55470152884985},
 #           300)
 # print(trajectory)
 # graph(trajectory,(0,0,255),DriveWin,DriveCanvas)
-# score,trajectory,ErrList = Drive({
+# score,trajectory = Drive({
 #         'x' : 400, # robo pos from wall
 #         'y' : 0,
 #         'angle' : 0
-#     },{'p': 0.5, 'd': 5},
-#           200)
+#     },{'p': 0.44738445662399723, 'd': 5},
+#           300)
 # print(score)
 # graph(trajectory,(0,255,0),DriveWin,DriveCanvas)
-# graph(ErrList,(255,0,0),ErrWin,ErrCanvas)
 DriveWin.mainloop()
