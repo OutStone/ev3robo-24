@@ -189,7 +189,7 @@ def evolution():
     DrawingEachTry = None
     DrawingEachColor = (0,255,0)
 
-    KoefList = [ { 'p': 1*random.uniform(1-RangeP,1+RangeP),'d': 1*random.uniform(0,1)} for i in range(InGen)]
+    KoefList = [ { 'p': 1*random.uniform(1-RangeP,1+RangeP),'d': 1*random.uniform(1-RangeD,1+RangeD)} for i in range(InGen)]
 
     for gen in range(genNum):
         minScoreOfGen = None
@@ -243,8 +243,8 @@ def evolution():
 
         if PrecisionFrequency != None:
             if gen % PrecisionFrequency == 0 and gen != 0:
-                RangeP /= 2
-                RangeD /= 2
+                RangeP /= 1.4
+                RangeD /= 1.4
                 print('---range reduced','p',RangeP,'d',RangeD)
 
         if GensToResetStart != None:
@@ -256,6 +256,8 @@ def evolution():
     
     file.close()
     print(Best)
+
+    # printing results
     DriveCanvas.create_text(1200, 1000 - 400 + 20*0     , text="Linear koef",                   fill=_from_rgb((0,150,0)), font=('Helvetica 15 bold'))
     DriveCanvas.create_text(1200, 1000 - 400 + 20*1     , text=str(round(Best['koefs']['p'],2)), fill=_from_rgb((0,150,0)), font=('Helvetica 15 bold'))
     DriveCanvas.create_text(1200, 1000 - 400 + 20*2 + 10, text="Derivative koef",               fill=_from_rgb((0,0,150)), font=('Helvetica 15 bold'))
