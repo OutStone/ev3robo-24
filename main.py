@@ -28,7 +28,7 @@ if True:
     FrontBtn = TouchSensor( RC.Buttons['front'] )
     SideBtn = TouchSensor( RC.Buttons['side'] )
 
-    ColorSensor = ColorSensor( RC.ColorSensor_port )
+    #ColorSensor = ColorSensor( RC.ColorSensor_port )
 
     # Gyro = GyroSensor( RC.Gyro_port )
     # InfraSensor = InfraredSensor( RC.InfraSensor_port )
@@ -54,15 +54,13 @@ def Follow_Ultra(target):
         global integral, previous_error
         dist = UlraSensor.distance()/10
 
-        print(round(dist, 3))
-
         error = target - dist
 
         integral += error
         derivative = error - previous_error
 
         correction = CC.proportial_gain * error + CC.integral_gain * integral + CC.derivative_gain * derivative
-        previous_error = error # nice
+        previous_error = error
 
         left_speed = CC.DriveSpeed + correction
         right_speed = CC.DriveSpeed - correction
@@ -84,43 +82,58 @@ def Follow_Mechanical():
         elif Drive_Clock.time() > 1000:
             robot.drive(CC.DriveSpeed * 3.14 * RC.Wheel_Diameter/360, 0)
 
-##--##--##--## working with colors ##--##--## 
-def Sort_Func( DetectedColor, sort ): # sorts the ping pong balls
-    global Now_Sorting, Back_Direction
-    if sort:
-        if DetectedColor == Color.RED:
-            Now_Sorting = True
-            
-            print('red')
-            SortingMotor.run_angle(
-                CC.SortSpeed,
-                CC.SortAngle['red'],
-                then=Stop.BRAKE,
-                wait=False
-            )
-            Back_Direction = 'red'
+def Reverse_Follow_Mechanical():
+    global Fixing, ForcedTurn
+    if not Fixing:
+        Drive_Clock.reset()
+        Drive_Clock.resume()
+        Fixing = 1
+        robot.drive(CC.DriveSpeed * 3.14 * RC.Wheel_Diameter/360 * -1, CC.FollowAngle['btn-off']/1.2)
+    elif Drive_Clock.time() > 1000 and Drive_Clock.time() < CC.StageValues[6]: # from 1000 to 4000
+        robot.drive(CC.DriveSpeed * 3.14 * RC.Wheel_Diameter/360 * -1, 0)
+    elif Drive_Clock.time() > CC.StageValues[6]: # from 4000
+        robot.stop()
+        print('FORCED TURN')
+        ForcedTurn = True
 
-        elif DetectedColor == Color.BLUE:
-            Now_Sorting = True
-            
-            print('blue')
-            
-            SortingMotor.run_angle(
-                CC.SortSpeed,
-                CC.SortAngle['blue'],
-                then=Stop.BRAKE,
-                wait=False
-            )
-            Back_Direction = 'blue'
-        else:
-            print("ERROR: unknown color: ", DetectedColor) # quite common - TODO: OPT change sth to make it rarer
-            Now_Sorting = False
-    else:
-        Now_Sorting = True
+##--##--##--## working with colors ##--##--## 
+def Sort_Func( DetectedColor): # sorts the ping pong balls
+    if DetectedColor == Color.RED:
+        robot.stop()
         
-        print('part 2 sort')
-        # no need to sort by color - balls are just picked up into the same container to be throwed on oponent's side  
-        SortingMotor.run_angle(CC.SortSpeed, CC.SortAngle['red'], then=Stop.BRAKE, wait=False)
+        print('red')
+        SortingMotor.run_angle(
+            CC.SortSpeed,
+            CC.SortAngle['red'],
+            then=Stop.BRAKE,
+            wait=True
+        )
+        SortingMotor.run_angle(
+            CC.SortSpeed,
+            CC.SortAngle['red'] * -1,
+            then=Stop.BRAKE,
+            wait=True
+        )
+
+    elif DetectedColor == Color.BLUE:
+        robot.stop()
+        
+        print('blue')
+        SortingMotor.run_angle(
+            CC.SortSpeed,
+            CC.SortAngle['blue'],
+            then=Stop.BRAKE,
+            wait=True
+        )
+        SortingMotor.run_angle(
+            CC.SortSpeed,
+            CC.SortAngle['blue'] * -1,
+            then=Stop.BRAKE,
+            wait=True
+        )
+
+    else:
+        print("                 ERROR: unknown color: ", DetectedColor) # quite common - TODO: OPT change sth to make it rarer
 
 ##--##--##--## GAME LOOP ##--##--##--##
 if True: # set up of variables
@@ -136,10 +149,6 @@ if True: # set up of variables
     Drive_Clock.pause()
     Drive_Clock.reset()
 
-    # color sorting
-    Now_Sorting = False
-    Back_Direction = None
-
     Game_Clock = StopWatch() # for game timing
     Game_Clock.pause()
     Game_Clock.reset()
@@ -151,9 +160,80 @@ if True: # set up of variables
     Dumping_Clock = StopWatch()
     Dumping_Clock.pause()
     Dumping_Clock.reset()
+##--##--##--## sign func ##--##--##--##
 
+def sign(a):
+    return 1 if a > 0 else -1
+##--##--##--## calibration of sorting systems ##--##--##--##
+# automated tuning process
+SortingMotor.run_angle(CC.SortSpeed/2,-500, then=Stop.BRAKE, wait=True)
+#SortingMotor.run_until_stalled(CC.SortSpeed, Stop.COAST, CC.Force)
+wait(1000)
+# SortingMotor.run_angle(
+#     CC.SortSpeed,
+#     CC.StartPos,
+#     then=Stop.BRAKE,
+#     wait=True
+# )
+
+offset = 0
 Start = False
 while True:
+    # if ColorSensor.color() == Color.BLUE:
+    #     Ev3.speaker.beep()
+    #     Ev3.speaker.beep()
+    if SideBtn.pressed():
+        Ev3.speaker.beep()
+        print('getting back')
+        SortingMotor.run_angle(
+            CC.SortSpeed/4,
+            -30,
+            then=Stop.BRAKE,
+            wait=True
+        )
+        offset += 30
+        wait(250)
+    if FrontBtn.pressed():
+        Start = True
+    elif Start:
+        break
+
+# CC.SortAngle['red'] -= offset
+# CC.SortAngle['blue'] -= offset
+# CC.DropPoints['red'] -= offset
+CC.DropPoints['blue'] += offset
+
+
+# waits a operator to start tuning process
+# Start = False
+# # print('press the button to tune!!')
+# while True: # btn start
+#     if FrontBtn.pressed():
+#         print(ColorSensor.color())
+#         Start = True
+#     elif Start:
+#         break
+
+# while True: # automated tuning process n.2
+#     DetectedColor = ColorSensor.color()
+#     if DetectedColor != Color.BLUE: # searches for a color of the ball
+#         SortingMotor.run(CC.SortSpeed/4)
+#     else: # ball found -> runs for additional 50 deg
+#         SortingMotor.brake()
+#         Ev3.speaker.beep()
+#         Ev3.speaker.beep()
+#         SortingMotor.run_angle(
+#             CC.SortSpeed/4,
+#             -150,
+#             then=Stop.BRAKE,
+#             wait=True
+#         )
+#         break
+
+# starting the run with a btn press
+Start = False
+print('press the button!!')
+while True: # waits for a btn
     if FrontBtn.pressed():
         Start = True
     elif Start:
@@ -164,31 +244,15 @@ while True:
 while True: # game loop
     
     if Game_Clock.time() >= CC.GameLenght:
+        print('90s of game time gone')
         Ev3.speaker.beep()
         break
 
-    # color detection
-    DetectedColor = ColorSensor.color()
-    if DetectedColor != None and not Now_Sorting:
-        Sort_Func( DetectedColor, CC.Do_ColorSort )
+    # # color detection
+    # DetectedColor = ColorSensor.color()
+    # if DetectedColor != None and CC.GamePart == 1:
+    #     Sort_Func( DetectedColor)
 
-    if Now_Sorting:
-        if Back_Direction:
-            if abs(SortingMotor.angle()) >= abs(CC.SortAngle[Back_Direction]):
-
-                SortingMotor.run_angle(
-                    CC.SortSpeed,
-                    -1* CC.SortAngle[Back_Direction], # the second part makes the motor move on the way back a bit less
-                    then=Stop.BRAKE,
-                    wait=False
-                )
-                print('changing sort direction')
-
-                Back_Direction = None
-        elif not Back_Direction:
-            if abs(SortingMotor.angle()) <= 5:
-                print('sorting finished')
-                Now_Sorting = False
 
     # stop the program detection
     if FrontBtn.pressed() or ForcedTurn:
@@ -218,20 +282,23 @@ while True: # game loop
             break
         
         # turning
-        Ev3.speaker.beep()
+        print(CC.DrivingStage)
         if CC.DrivingStage in CC.DoNotTurn:
-            pass
+            print("skipping turning")
+            if CC.DrivingStage == 7:
+                robot.straight(75)
+
         elif CC.DrivingStage in CC.ReverseTurns:
             ServoTurn(-2,3,60)
         else:
             ServoTurn(-2,3,-60)
 
         # specific driving stage things
-        if CC.DrivingStage == 4:
+        if CC.DrivingStage == 4 or CC.DrivingStage == 6 or CC.DrivingStage == 10:
             robot.reset()
-        
+
+        Dumping_Clock.pause()
         Dumping_Clock.reset()
-        Dumping_Clock.resume()
 
     # driving stage logic
     if   CC.DrivingStage == 1: ## Sensor follow
@@ -248,23 +315,42 @@ while True: # game loop
             ForcedTurn = True
     elif CC.DrivingStage == 5: ## Sensor follow
         Follow_Ultra( CC.StageValues[CC.DrivingStage] )
-    elif CC.DrivingStage == 6: ## Backing to dump the balls
-        robot.straight(CC.StageValues[ CC.DrivingStage ])
-        ForcedTurn = True
+    elif CC.DrivingStage == 6: ## Mechanical follow backwards & distance measurement
+        Reverse_Follow_Mechanical()
     elif CC.DrivingStage == 7: ## Dumping balls
-        # TODO: dump them!
-        print('dumping')
-        if Dumping_Clock.time() >= CC.DumpTime:
-            ForcedTurn = True
+        # SortingMotor.run_angle(CC.SortSpeed/2,CC.DropPoints['red'], then=Stop.BRAKE, wait=True)
+        wait(CC.DumpTime)
+        ForcedTurn = True
     elif CC.DrivingStage == 8: ## Mechanical follow
         Follow_Mechanical()
+    elif CC.DrivingStage == 9: ## Dumping balls
+        SortingMotor.run_angle(CC.SortSpeed/2,CC.DropPoints['blue'], then=Stop.BRAKE, wait=True) #+ CC.DropPoints['red']*-1, then=Stop.BRAKE, wait=True)
+        wait(50)
+        SortingMotor.run_angle(CC.SortSpeed/2,CC.DropPoints['blue'], then=Stop.BRAKE, wait=True) #+ CC.DropPoints['red']*-1, then=Stop.BRAKE, wait=True)
+        wait(CC.DumpTime)
+        ForcedTurn = True
+    elif CC.DrivingStage == 10:
+        if not CC.RunSecondPart:
+            Ev3.speaker.beep()
+            break
+        driven = robot.distance()
+        Follow_Mechanical()
+
+        if driven >= CC.StageValues[10]:
+            ForcedTurn = True
+    elif CC.DrivingStage == 11:
+        robot.drive(CC.DriveSpeed * 3.14 * RC.Wheel_Diameter/360,0)
+    elif CC.DrivingStage == 12: ## Mechanical follow
+        Follow_Mechanical()
     else:
+        Ev3.speaker.beep()
         break
     
     # constant time program cycle
     if Cycle_Clock.time() < CC.LoopTime: # spare time -> waits
         wait(CC.LoopTime - Cycle_Clock.time())
     else: # not enought time
+        pass
         print('\033Err: cycle took to long!\033') # printing in red color
         print(Cycle_Clock.time())
     

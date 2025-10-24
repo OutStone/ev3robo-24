@@ -16,11 +16,15 @@ import CodeCostants as CC
 ##--##--##--## ROBO SET UP ##--##--## 
 Ev3 = EV3Brick()
 
-FrontBtn =  TouchSensor( RC.Buttons['front'] )
-UlraSensor = UltrasonicSensor( RC.UlraSensor_port )
+# Motors
+SortingMotor = Motor( RC.Motors['sort'],positive_direction = Direction.COUNTERCLOCKWISE )
+LeftMotor = Motor( RC.Motors['left'],positive_direction = Direction.COUNTERCLOCKWISE )
+RightMotor = Motor( RC.Motors['right'],positive_direction = Direction.COUNTERCLOCKWISE )
+robot = DriveBase( LeftMotor, RightMotor, RC.Wheel_Diameter, RC.Axle_Track )
 
-Ev3.speaker.beep()
-while True:
-    if FrontBtn.pressed():
-        dist = UlraSensor.distance()
-        print(dist)
+
+FrontBtn = TouchSensor( RC.Buttons['front'] )
+
+
+robot.drive(200,0)
+wait(10000)

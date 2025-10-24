@@ -13,14 +13,8 @@ import RoboConstants as RC
 ##--##--##--## CODE CONSTANTS ##--##--##--##
 import CodeCostants as CC
 
-##--##--##--## ROBO SET UP ##--##--## 
-Ev3 = EV3Brick()
+# Motors
+SortingMotor = Motor( RC.Motors['sort'],positive_direction = Direction.COUNTERCLOCKWISE )
 
-FrontBtn =  TouchSensor( RC.Buttons['front'] )
-UlraSensor = UltrasonicSensor( RC.UlraSensor_port )
-
-Ev3.speaker.beep()
-while True:
-    if FrontBtn.pressed():
-        dist = UlraSensor.distance()
-        print(dist)
+SortingMotor.run_angle(CC.SortSpeed,-1300, then=Stop.BRAKE, wait=True) # zadna rezerva
+SortingMotor.run_angle(CC.SortSpeed,1300, then=Stop.BRAKE, wait=True) # zadna rezerva
