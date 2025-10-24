@@ -17,13 +17,10 @@ import CodeCostants as CC
 Ev3 = EV3Brick()
 
 FrontBtn =  TouchSensor( RC.Buttons['front'] )
-Gyro = GyroSensor( RC.Gyro_port )
-#UlraSensor = UltrasonicSensor( RC.UlraSensor_port )
+UlraSensor = UltrasonicSensor( RC.UlraSensor_port )
 
 Ev3.speaker.beep()
 while True:
-    #dist = UlraSensor.distance()
-    angle = Gyro.angle()
-    print(angle)
     if FrontBtn.pressed():
-        break
+        dist = UlraSensor.distance()
+        print(dist)

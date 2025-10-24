@@ -1,5 +1,7 @@
 DriveSpeed = 300 # in mm/s
 DrivingStage = 1 # changes with every turn
+GamePart = 1
+RunSecondPart = True
 
 DistanceSensor_Offset = 10 # in cm from the ball eating part
 

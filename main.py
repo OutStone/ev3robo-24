@@ -28,7 +28,7 @@ if True:
     FrontBtn = TouchSensor( RC.Buttons['front'] )
     SideBtn = TouchSensor( RC.Buttons['side'] )
 
-    ColorSensor = ColorSensor( RC.ColorSensor_port )
+    #ColorSensor = ColorSensor( RC.ColorSensor_port )
 
     # Gyro = GyroSensor( RC.Gyro_port )
     # InfraSensor = InfraredSensor( RC.InfraSensor_port )
@@ -53,8 +53,6 @@ def ServoTurn(left, right, speed): # in deg/s & deg
 def Follow_Ultra(target):
         global previous_error
         dist = UlraSensor.distance()/10
-
-        print(round(dist, 3))
 
         error = target - dist
 
@@ -165,22 +163,26 @@ while True: # game loop
             break
         
         # turning
-        Ev3.speaker.beep()
+        print(CC.DrivingStage)
         if CC.DrivingStage in CC.DoNotTurn:
-            pass
+            print("skipping turning")
+            if CC.DrivingStage == 7:
+                robot.straight(75)
+
         elif CC.DrivingStage in CC.ReverseTurns:
             ServoTurn(-2,3,60)
         else:
             ServoTurn(-2,3,-60)
 
         # specific driving stage things
-        if CC.DrivingStage == 4:
+        if CC.DrivingStage == 4 or CC.DrivingStage == 6 or CC.DrivingStage == 10:
             robot.reset()
 
     # driving stage logic
     if   CC.DrivingStage == 1: ## Sensor follow
         robot.straight(CC.StageValues[ CC.DrivingStage ])
     else:
+        Ev3.speaker.beep()
         break
     
     # constant time program cycle
@@ -188,6 +190,7 @@ while True: # game loop
         wait(CC.LoopTime - Cycle_Clock.time())
 
     else: # not enought time
+        pass
         print('\033Err: cycle took to long!\033') # printing in red color
         print(Cycle_Clock.time())
     
