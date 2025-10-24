@@ -28,7 +28,7 @@ if True:
     FrontBtn = TouchSensor( RC.Buttons['front'] )
     SideBtn = TouchSensor( RC.Buttons['side'] )
 
-    #ColorSensor = ColorSensor( RC.ColorSensor_port )
+    # ColorSensor = ColorSensor( RC.ColorSensor_port )
 
     # Gyro = GyroSensor( RC.Gyro_port )
     # InfraSensor = InfraredSensor( RC.InfraSensor_port )
@@ -174,9 +174,6 @@ while True: # game loop
         else:
             ServoTurn(-2,3,-60)
 
-        # specific driving stage things
-        if CC.DrivingStage == 4 or CC.DrivingStage == 6 or CC.DrivingStage == 10:
-            robot.reset()
 
     # driving stage logic
     if   CC.DrivingStage == 1: ## Sensor follow
