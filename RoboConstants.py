@@ -4,7 +4,7 @@ from pybricks.parameters import Port
 Motors = {
     'left'  : Port.A,
     'right' : Port.B,
-    'sort'  : Port.C
+    'third' : Port.C
 }
 Buttons = {
     'front' : Port.S4,

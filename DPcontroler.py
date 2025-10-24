@@ -34,10 +34,9 @@ def Follow_Ultra(target):
 
         error = target - dist
 
-        integral += error
         derivative = error - previous_error
 
-        correction = CC.Kp2 * error + CC.Ki2 * integral + CC.Kd2 * derivative
+        correction = CC.proportial_gain * error + CC.derivative_gain * derivative
         previous_error = error
 
         left_speed = (CC.DriveSpeed + correction) *-1  # INVERTED!!
@@ -49,10 +48,8 @@ def Follow_Ultra(target):
 ##--##--##--## GAME LOOP ##--##--##--##
 
 previous_error = 0
-integral = 0
 
 Cycle_Clock = StopWatch()
-
 LoopTime = 20
 
 
@@ -66,7 +63,7 @@ while True:
         break
         
 
-    Follow_Ultra( CC.StageValues[5] )
+    Follow_Ultra( 500 ) # the distance to follow
 
     # making a constant time drive loop 
     if Cycle_Clock.time() < LoopTime:

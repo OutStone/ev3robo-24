@@ -18,7 +18,7 @@ if True:
     Ev3 = EV3Brick()
 
     # Motors
-    SortingMotor = Motor( RC.Motors['sort'],positive_direction = Direction.COUNTERCLOCKWISE )
+    ThirdMotor = Motor( RC.Motors['third'],positive_direction = Direction.COUNTERCLOCKWISE )
     LeftMotor = Motor( RC.Motors['left'],positive_direction = Direction.COUNTERCLOCKWISE )
     RightMotor = Motor( RC.Motors['right'],positive_direction = Direction.COUNTERCLOCKWISE )
 
@@ -51,18 +51,17 @@ def ServoTurn(left, right, speed): # in deg/s & deg
     robot.stop()
 
 def Follow_Ultra(target):
-        global integral, previous_error
+        global previous_error
         dist = UlraSensor.distance()/10
 
         print(round(dist, 3))
 
         error = target - dist
 
-        integral += error
         derivative = error - previous_error
 
-        correction = CC.proportial_gain * error + CC.integral_gain * integral + CC.derivative_gain * derivative
-        previous_error = error # nice
+        correction = CC.proportial_gain * error + CC.derivative_gain * derivative
+        previous_error = error
 
         left_speed = CC.DriveSpeed + correction
         right_speed = CC.DriveSpeed - correction
@@ -71,74 +70,48 @@ def Follow_Ultra(target):
         LeftMotor.run(right_speed)
 
 def Follow_Mechanical():
-    global Fixing
-    if SideBtn.pressed(): # if True then we are directly next to wall
+    global Lost_the_wall
+    if SideBtn.pressed(): # True -> we are directly next to wall
         robot.drive(CC.DriveSpeed * 3.14 * RC.Wheel_Diameter/360, CC.FollowAngle['ok'])
-        Fixing = 0
-    else: # if True then we are directly next to wall
-        if not Fixing:
+        Lost_the_wall = False
+    else: # time to search where the lost wall is
+        if not Lost_the_wall:
             Drive_Clock.reset()
             Drive_Clock.resume()
-            Fixing = 1
+            Lost_the_wall = True
             robot.drive(CC.DriveSpeed * 3.14 * RC.Wheel_Diameter/360, CC.FollowAngle['btn-off'])
         elif Drive_Clock.time() > 1000:
             robot.drive(CC.DriveSpeed * 3.14 * RC.Wheel_Diameter/360, 0)
 
-##--##--##--## working with colors ##--##--## 
-def Sort_Func( DetectedColor, sort ): # sorts the ping pong balls
-    global Now_Sorting, Back_Direction
-    if sort:
-        if DetectedColor == Color.RED:
-            Now_Sorting = True
-            
-            print('red')
-            SortingMotor.run_angle(
-                CC.SortSpeed,
-                CC.SortAngle['red'],
-                then=Stop.BRAKE,
-                wait=False
-            )
-            Back_Direction = 'red'
-
-        elif DetectedColor == Color.BLUE:
-            Now_Sorting = True
-            
-            print('blue')
-            
-            SortingMotor.run_angle(
-                CC.SortSpeed,
-                CC.SortAngle['blue'],
-                then=Stop.BRAKE,
-                wait=False
-            )
-            Back_Direction = 'blue'
-        else:
-            print("ERROR: unknown color: ", DetectedColor) # quite common - TODO: OPT change sth to make it rarer
-            Now_Sorting = False
+##--##--##--## working with tetris tiles ##--##--## 
+def Move_gate(direct):
+    # this func does both open & close the gate
+    if direct.lower() == "open":
+        flag = -1
+    elif direct.lower() == "close":
+        flag = 1
     else:
-        Now_Sorting = True
-        
-        print('part 2 sort')
-        # no need to sort by color - balls are just picked up into the same container to be throwed on oponent's side  
-        SortingMotor.run_angle(CC.SortSpeed, CC.SortAngle['red'], then=Stop.BRAKE, wait=False)
+        print("incorrect direction input to gate moving func")
 
+    ThirdMotor.run_angle(
+        CC.GateSpeed,
+        CC.GateAngle * flag,
+        then=Stop.HOLD,
+        wait=True
+    )
+    
 ##--##--##--## GAME LOOP ##--##--##--##
 if True: # set up of variables
     # driving
     ForcedTurn = False # substitutes for a button press -> iniciates a robot turn
-    Fixing = 0 # zero.. everything ok 1 ... a problem - trying to drive back to target
+    Lost_the_wall = False # zero.. everything ok;  1 ... a problem -> trying to drive back to target
 
     # ultrasonic wall follow
     previous_error = 0
-    integral = 0
 
     Drive_Clock = StopWatch() # measuring robot turn angle in mechanical follow
     Drive_Clock.pause()
     Drive_Clock.reset()
-
-    # color sorting
-    Now_Sorting = False
-    Back_Direction = None
 
     Game_Clock = StopWatch() # for game timing
     Game_Clock.pause()
@@ -148,15 +121,12 @@ if True: # set up of variables
     Cycle_Clock.pause()
     Cycle_Clock.reset()
 
-    Dumping_Clock = StopWatch()
-    Dumping_Clock.pause()
-    Dumping_Clock.reset()
-
 Start = False
 while True:
     if FrontBtn.pressed():
         Start = True
     elif Start:
+        # upon releasing the button (may take multiple game cycles) starts the game
         Game_Clock.resume()
         Cycle_Clock.resume()
         break
@@ -164,31 +134,9 @@ while True:
 while True: # game loop
     
     if Game_Clock.time() >= CC.GameLenght:
+        # the game time is up => robot should stop
         Ev3.speaker.beep()
         break
-
-    # color detection
-    DetectedColor = ColorSensor.color()
-    if DetectedColor != None and not Now_Sorting:
-        Sort_Func( DetectedColor, CC.Do_ColorSort )
-
-    if Now_Sorting:
-        if Back_Direction:
-            if abs(SortingMotor.angle()) >= abs(CC.SortAngle[Back_Direction]):
-
-                SortingMotor.run_angle(
-                    CC.SortSpeed,
-                    -1* CC.SortAngle[Back_Direction], # the second part makes the motor move on the way back a bit less
-                    then=Stop.BRAKE,
-                    wait=False
-                )
-                print('changing sort direction')
-
-                Back_Direction = None
-        elif not Back_Direction:
-            if abs(SortingMotor.angle()) <= 5:
-                print('sorting finished')
-                Now_Sorting = False
 
     # stop the program detection
     if FrontBtn.pressed() or ForcedTurn:
@@ -199,8 +147,7 @@ while True: # game loop
         # reseting variables
         ForcedTurn = False
         previous_error = 0
-        integral = 0
-        Fixing = 0
+        Lost_the_wall = False
 
         
         # stoping the robot after ulrasonic wall follow  x  after evrth. else
@@ -229,41 +176,17 @@ while True: # game loop
         # specific driving stage things
         if CC.DrivingStage == 4:
             robot.reset()
-        
-        Dumping_Clock.reset()
-        Dumping_Clock.resume()
 
     # driving stage logic
     if   CC.DrivingStage == 1: ## Sensor follow
-        Follow_Ultra( CC.StageValues[CC.DrivingStage] )
-    elif CC.DrivingStage == 2: ## Mechanical follow
-        Follow_Mechanical()
-    elif CC.DrivingStage == 3: ## Mechanical follow
-        Follow_Mechanical()
-    elif CC.DrivingStage == 4: ## Mechanical follow with distnace measurement
-        driven = robot.distance()
-        Follow_Mechanical()
-
-        if driven >= CC.StageValues[4]:
-            ForcedTurn = True
-    elif CC.DrivingStage == 5: ## Sensor follow
-        Follow_Ultra( CC.StageValues[CC.DrivingStage] )
-    elif CC.DrivingStage == 6: ## Backing to dump the balls
         robot.straight(CC.StageValues[ CC.DrivingStage ])
-        ForcedTurn = True
-    elif CC.DrivingStage == 7: ## Dumping balls
-        # TODO: dump them!
-        print('dumping')
-        if Dumping_Clock.time() >= CC.DumpTime:
-            ForcedTurn = True
-    elif CC.DrivingStage == 8: ## Mechanical follow
-        Follow_Mechanical()
     else:
         break
     
     # constant time program cycle
     if Cycle_Clock.time() < CC.LoopTime: # spare time -> waits
         wait(CC.LoopTime - Cycle_Clock.time())
+
     else: # not enought time
         print('\033Err: cycle took to long!\033') # printing in red color
         print(Cycle_Clock.time())
