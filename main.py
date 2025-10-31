@@ -28,7 +28,7 @@ if True:
     FrontBtn = TouchSensor( RC.Buttons['front'] )
     SideBtn = TouchSensor( RC.Buttons['side'] )
 
-    # ColorSensor = ColorSensor( RC.ColorSensor_port )
+    ColorSensor = ColorSensor( RC.ColorSensor_port )
 
     # Gyro = GyroSensor( RC.Gyro_port )
     # InfraSensor = InfraredSensor( RC.InfraSensor_port )
@@ -49,6 +49,15 @@ def ServoTurn(left, right, speed): # in deg/s & deg
     print("konec zataceni")
 
     robot.stop()
+
+def Stop_Dist(target):
+    dist = UlraSensor.distance()
+    if dist >= CC.UltraSensorMax:
+        print("Ultra reporting max value")
+    elif dist>= target:
+        return True
+    
+    return False
 
 def Follow_Ultra(target):
         global previous_error
@@ -81,6 +90,15 @@ def Follow_Mechanical():
         elif Drive_Clock.time() > 1000:
             robot.drive(CC.DriveSpeed * 3.14 * RC.Wheel_Diameter/360, 0)
 
+def Follow_Color():
+    Color_now = ColorSensor.color()
+    if Color_now == Color.BLACK: # now it wants to find white => turning left
+        RightMotor.run(CC.DriveSpeed*0.9)
+        LeftMotor.run(CC.DriveSpeed*1.1)
+    if Color_now == Color.WHITE: # now it wants to find black => turning right
+        RightMotor.run(CC.DriveSpeed*1.1)
+        LeftMotor.run(CC.DriveSpeed*0.9)
+
 ##--##--##--## working with tetris tiles ##--##--## 
 def Move_gate(direct):
     # this func does both open & close the gate
@@ -101,7 +119,7 @@ def Move_gate(direct):
 ##--##--##--## GAME LOOP ##--##--##--##
 if True: # set up of variables
     # driving
-    ForcedTurn = False # substitutes for a button press -> iniciates a robot turn
+    End_of_stage = False # substitutes for a button press -> iniciates a robot turn
     Lost_the_wall = False # zero.. everything ok;  1 ... a problem -> trying to drive back to target
 
     # ultrasonic wall follow
@@ -137,13 +155,13 @@ while True: # game loop
         break
 
     # stop the program detection
-    if FrontBtn.pressed() or ForcedTurn:
+    if FrontBtn.pressed() or End_of_stage:
         # reseting driving clock
         Drive_Clock.pause()
         Drive_Clock.reset()
 
         # reseting variables
-        ForcedTurn = False
+        End_of_stage = False
         previous_error = 0
         Lost_the_wall = False
 
@@ -159,25 +177,28 @@ while True: # game loop
         CC.DrivingStage += 1
 
         # forced stop
-        if CC.DrivingStage == CC.StopAt:
+        if CC.DrivingStage == CC.EndRun:
             break
         
-        # turning
-        print(CC.DrivingStage)
-        if CC.DrivingStage in CC.DoNotTurn:
-            print("skipping turning")
-            if CC.DrivingStage == 7:
-                robot.straight(75)
+        # turning       TODO: think about replacing it with seperate stages for each turn
+        # print(CC.DrivingStage)
+        # if CC.DrivingStage in CC.DoNotTurn:
+        #     print("skipping turning")
+        #     if CC.DrivingStage == 7:
+        #         robot.straight(75)
 
-        elif CC.DrivingStage in CC.ReverseTurns:
-            ServoTurn(-2,3,60)
-        else:
-            ServoTurn(-2,3,-60)
+        # elif CC.DrivingStage in CC.ReverseTurns:
+        #     ServoTurn(-2,3,60)
+        # else:
+        #     ServoTurn(-2,3,-60)
 
 
     # driving stage logic
-    if   CC.DrivingStage == 1: ## Sensor follow
-        robot.straight(CC.StageValues[ CC.DrivingStage ])
+    if   CC.DrivingStage == 1: ## color follow  && max distance from wall to reach
+        Follow_Color()
+        End_of_stage = Stop_Dist(CC.StageValues[ CC.DrivingStage ]) # if I reached the target it returns True => next stage will activite
+    elif CC.DrivingStage == 2:
+        Move_gate(CC.StageValues[ CC.DrivingStage ])
     else:
         Ev3.speaker.beep()
         break

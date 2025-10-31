@@ -3,13 +3,16 @@ DrivingStage = 1 # changes with every turn
 GamePart = 1
 RunSecondPart = True
 
+UltraSensorMax = 255
 DistanceSensor_Offset = 10 # in cm from the ball eating part
 
-StopAt = -1 # TESTING ONLY
+EndRun = -1 # TESTING ONLY
 
 Do_ColorSort = True 
 StageValues = {
-    1 : None
+    1 : 717,    # distance from wall where should stop
+    2: "close", 
+    3: 717,     # distance to drive back to reach wall (TODO: correct it by including dimensions of robot)
 }
 UltraFollowStages = []
 ReverseTurns = []
