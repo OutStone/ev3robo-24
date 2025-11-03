@@ -17,5 +17,5 @@ Gyro_port = Port.S3 # Not on robot
 InfraSensor_port = Port.S4 # Not on robot
 UlraSensor_port = Port.S4
 
-Wheel_Diameter = 55 # in milimeters
-Axle_Track = 130 # in mm - small testing robo had just 76 mm
+Wheel_Diameter = 43.2 # in milimeters
+Axle_Track = 108 # in mm 

@@ -15,11 +15,10 @@ Do_ColorSort = True
 StageValues = {
     1 : 700,    # distance from wall where should stop
     2: "close", 
-    3: 710,     # distance to drive back to reach wall (TODO: correct it by including dimensions of robot)
+    3: -710,    # distance to drive back to reach wall
+    4: 0.25     # fraction of circle to steer
 }
-UltraFollowStages = []
-ReverseTurns = []
-DoNotTurn = []
+MotorsRunSeparately = [1]
 
 ##--##--## Constants for gate operating ##--##--##
 GateSpeed = 200 # in deg/s

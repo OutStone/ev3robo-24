@@ -7,6 +7,9 @@ from pybricks.tools import wait, StopWatch, DataLog
 from pybricks.robotics import DriveBase
 from pybricks.media.ev3dev import SoundFile, ImageFile
 
+##--##--##--## DATA LOG ##--##--## 
+log = ""
+
 ##--##--##--## ROBO CONSTANTS ##--##--## 
 import RoboConstants as RC
 
@@ -19,13 +22,13 @@ if True:
 
     # Motors
     ThirdMotor = Motor( RC.Motors['third'],positive_direction = Direction.COUNTERCLOCKWISE )
-    LeftMotor = Motor( RC.Motors['left'],positive_direction = Direction.COUNTERCLOCKWISE )
-    RightMotor = Motor( RC.Motors['right'],positive_direction = Direction.COUNTERCLOCKWISE )
+    LeftMotor = Motor( RC.Motors['left'],positive_direction = Direction.CLOCKWISE )
+    RightMotor = Motor( RC.Motors['right'],positive_direction = Direction.CLOCKWISE )
 
     robot = DriveBase( LeftMotor, RightMotor, RC.Wheel_Diameter, RC.Axle_Track )
 
     # Sensors
-    FrontBtn = TouchSensor( RC.Buttons['front'] )
+    # FrontBtn = TouchSensor( RC.Buttons['front'] )
     SideBtn = TouchSensor( RC.Buttons['side'] )
 
     ColorSensor = ColorSensor( RC.ColorSensor_port )
@@ -35,26 +38,26 @@ if True:
     UlraSensor = UltrasonicSensor( RC.UlraSensor_port )
 
 ##--##--##--## Driving Funcions ##--##--##--##
-def ServoTurn(left, right, speed): # in deg/s & deg
+def ServoTurn(fraction_of_circle, speed): # in deg/s & deg
     robot.stop()
 
-    Angle_left = (RC.Axle_Track/(4*RC.Wheel_Diameter)) * left * 180*-1
-    Angle_right = (RC.Axle_Track/(4*RC.Wheel_Diameter)) * right * 180
+    Angle_left  = (RC.Axle_Track/RC.Wheel_Diameter) * fraction_of_circle * -1
+    Angle_right = (RC.Axle_Track/RC.Wheel_Diameter) * fraction_of_circle
 
-    Speed_left = speed * left
-    Speed_right = speed * right
-
-    RightMotor.run_angle( Speed_right, Angle_right,wait=False )
-    LeftMotor.run_angle( Speed_left, Angle_left )
+    RightMotor.run_angle( speed, Angle_right,wait=False )
+    LeftMotor.run_angle( speed, Angle_left )
     print("konec zataceni")
 
     robot.stop()
 
 def Stop_Dist(target):
-    dist = UlraSensor.distance()
+    global log
+    dist = UlraSensor.distance() + CC.DistanceSensor_Offset['backwards']
+    log += str(dist) + "     "
     if dist >= CC.UltraSensorMax:
         print("Ultra reporting max value")
-    elif dist>= target:
+        return True
+    elif dist >= target:
         return True
     
     return False
@@ -91,23 +94,32 @@ def Follow_Mechanical():
             robot.drive(CC.DriveSpeed * 3.14 * RC.Wheel_Diameter/360, 0)
 
 def Follow_Color():
+    global log
     Color_now = ColorSensor.color()
+    log += str(Color_now) + "     "
     if Color_now == Color.BLACK: # now it wants to find white => turning left
-        RightMotor.run(CC.DriveSpeed*0.9)
-        LeftMotor.run(CC.DriveSpeed*1.1)
-    if Color_now == Color.WHITE: # now it wants to find black => turning right
-        RightMotor.run(CC.DriveSpeed*1.1)
-        LeftMotor.run(CC.DriveSpeed*0.9)
+        RightMotor.run(CC.DriveSpeed*(1-CC.line_koef))
+        LeftMotor.run(CC.DriveSpeed *(1+CC.line_koef))
+        
+    elif Color_now == Color.WHITE: # now it wants to find black => turning right
+        RightMotor.run(CC.DriveSpeed*(1+CC.line_koef))
+        LeftMotor.run(CC.DriveSpeed *(1-CC.line_koef))
+
+    else: # this is the same as for white, but it should not happen so better make a note in game log
+        log += "\033[93m LACK OF LIGHT:\033[00m " # in Yellow
+        RightMotor.run(CC.DriveSpeed*(1+CC.line_koef))
+        LeftMotor.run(CC.DriveSpeed *(1-CC.line_koef))
+    log += str(Color_now) + "     "
 
 ##--##--##--## working with tetris tiles ##--##--## 
 def Move_gate(direct):
     # this func does both open & close the gate
     if direct.lower() == "open":
-        flag = -1
-    elif direct.lower() == "close":
         flag = 1
+    elif direct.lower() == "close":
+        flag = -1
     else:
-        print("incorrect direction input to gate moving func")
+        print("\033[91m incorrect direction input to gate moving func '{}'\033[00m ".format(direct))
 
     ThirdMotor.run_angle(
         CC.GateSpeed,
@@ -139,7 +151,7 @@ if True: # set up of variables
 
 Start = False
 while True:
-    if FrontBtn.pressed():
+    if SideBtn.pressed(): #FrontBtn.pressed():
         Start = True
     elif Start:
         # upon releasing the button (may take multiple game cycles) starts the game
@@ -155,7 +167,7 @@ while True: # game loop
         break
 
     # stop the program detection
-    if FrontBtn.pressed() or End_of_stage:
+    if End_of_stage: #FrontBtn.pressed() or End_of_stage:
         # reseting driving clock
         Drive_Clock.pause()
         Drive_Clock.reset()
@@ -167,7 +179,7 @@ while True: # game loop
 
         
         # stoping the robot after ulrasonic wall follow  x  after evrth. else
-        if CC.DrivingStage in CC.UltraFollowStages:
+        if CC.DrivingStage in CC.MotorsRunSeparately:
             LeftMotor.stop()
             RightMotor.stop()
         else:
@@ -179,28 +191,24 @@ while True: # game loop
         # forced stop
         if CC.DrivingStage == CC.EndRun:
             break
-        
-        # turning       TODO: think about replacing it with seperate stages for each turn
-        # print(CC.DrivingStage)
-        # if CC.DrivingStage in CC.DoNotTurn:
-        #     print("skipping turning")
-        #     if CC.DrivingStage == 7:
-        #         robot.straight(75)
-
-        # elif CC.DrivingStage in CC.ReverseTurns:
-        #     ServoTurn(-2,3,60)
-        # else:
-        #     ServoTurn(-2,3,-60)
 
 
     # driving stage logic
     if   CC.DrivingStage == 1: ## color follow  && max distance from wall to reach
         Follow_Color()
         End_of_stage = Stop_Dist(CC.StageValues[ CC.DrivingStage ]) # if I reached the target it returns True => next stage will activite
-    elif CC.DrivingStage == 2:
-        Move_gate(CC.StageValues[ CC.DrivingStage ])
+    elif CC.DrivingStage == 2: # closes the storage
+        End_of_stage = True
+        # Move_gate(CC.StageValues[ CC.DrivingStage ])
+    elif CC.DrivingStage == 3:
+        robot.straight(CC.StageValues[ CC.DrivingStage ] - CC.DistanceSensor_Offset[ 'backwards' ])
+        End_of_stage = True
+    elif CC.DrivingStage == 4:
+        ServoTurn(0.25 , 60)
+        End_of_stage = True
     else:
-        Ev3.speaker.beep()
+        #Ev3.speaker.beep()
+        print("\033[92m End\033[00m")
         break
     
     # constant time program cycle
@@ -213,3 +221,7 @@ while True: # game loop
         print(Cycle_Clock.time())
     
     Cycle_Clock.reset()
+
+    # managing the game log
+    print(log)
+    log = ""
