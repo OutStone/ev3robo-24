@@ -1,5 +1,8 @@
-DriveSpeed = 100 # in mm/s
-DrivingStage = 1 # changes with every turn
+import RoboConstants as RC
+
+DriveSpeed = 400 # in mm/s
+RotationSpeed = 360 * 400/(RC.Wheel_Diameter*3.14) # in deg/s
+DrivingStage = 0 # changes with every turn
 GamePart = 1
 RunSecondPart = True
 
@@ -13,7 +16,8 @@ EndRun = -1 # TESTING ONLY
 
 Do_ColorSort = True 
 StageValues = {
-    1 : 700,    # distance from wall where should stop
+    0: "open",
+    1: 1100,#700,    # distance from wall where should stop
     2: "close", 
     3: -710,    # distance to drive back to reach wall
     4: 0.25     # fraction of circle to steer
@@ -39,7 +43,8 @@ FollowAngle = {
 }
 
 ##--##--## Constants for line following ##--##--##
-line_koef = 0.2
+white_koef = 0.4
+black_koef = 0.4
 
 ##--##--## Constants for turning function  ##--##--##
 TurnErr = 10/9 #CHECK: check at the competition
