@@ -40,13 +40,13 @@ if True:
 
 ##--##--##--## Driving Funcions ##--##--##--##
 def ServoTurn(fraction_of_circle, speed): # in deg/s & deg
-    robot.stop()
+    robot.stop() # TODO: potentionaly too redundant -> remove after a check of functions usage in code
 
     Angle_left  = (RC.Axle_Track/RC.Wheel_Diameter) * fraction_of_circle * -1 * 360
     Angle_right = (RC.Axle_Track/RC.Wheel_Diameter) * fraction_of_circle      * 360
 
     RightMotor.run_angle( speed, Angle_right,wait=False )
-    LeftMotor.run_angle( speed, Angle_left )
+    LeftMotor.run_angle(  speed, Angle_left )
     print("konec zataceni")
 
     robot.stop()
@@ -113,7 +113,7 @@ def Follow_Color():
     log += str(Color_now) + "     "
 
 ##--##--##--## working with tetris tiles ##--##--## 
-def Move_gate(direct):
+def Move_Gate(direct,wait_for_it=True):
     # this func does both open & close the gate
     if direct.lower() == "open":
         flag = 1
@@ -126,7 +126,7 @@ def Move_gate(direct):
         CC.GateSpeed,
         CC.GateAngle * flag,
         then=Stop.HOLD,
-        wait=True
+        wait=wait_for_it
     )
     
 ##--##--##--## GAME LOOP ##--##--##--##
@@ -179,12 +179,8 @@ while True: # game loop
         Lost_the_wall = False
 
         
-        # stoping the robot after ulrasonic wall follow  x  after evrth. else
-        if CC.DrivingStage in CC.MotorsRunSeparately:
-            LeftMotor.stop()
-            RightMotor.stop()
-        else:
-            robot.stop()
+        # stoping the robot after movent
+        robot.stop()
 
         
         CC.DrivingStage += 1
@@ -197,13 +193,13 @@ while True: # game loop
     # driving stage logic
     if  CC.DrivingStage == 0: # closes the storage
         End_of_stage = True
-        Move_gate(CC.StageValues[ CC.DrivingStage ])
+        Move_Gate(CC.StageValues[ CC.DrivingStage ])
     elif CC.DrivingStage == 1: ## color follow  && max distance from wall to reach
         Follow_Color()
         End_of_stage = Stop_Dist(CC.StageValues[ CC.DrivingStage ]) # if I reached the target it returns True => next stage will activite
     elif CC.DrivingStage == 2: # closes the storage
         End_of_stage = True
-        Move_gate(CC.StageValues[ CC.DrivingStage ])
+        Move_Gate(CC.StageValues[ CC.DrivingStage ])
     elif CC.DrivingStage == 3:
         robot.straight(CC.StageValues[ CC.DrivingStage ] + CC.DistanceSensor_Offset[ 'backwards' ])
         End_of_stage = True
@@ -219,6 +215,7 @@ while True: # game loop
         break
     
     # constant time program cycle
+    #TODO: Maybe remove this, 'cause this year we are not gonna follow a will with Ultra-sensor
     if Cycle_Clock.time() < CC.LoopTime: # spare time -> waits
         wait(CC.LoopTime - Cycle_Clock.time())
 
