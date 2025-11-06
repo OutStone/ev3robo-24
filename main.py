@@ -29,7 +29,7 @@ if True:
     robot.settings(straight_speed=2*CC.DriveSpeed)
 
     # Sensors
-    # FrontBtn = TouchSensor( RC.Buttons['front'] )
+    FrontBtn = TouchSensor( RC.Buttons['front'] )
     SideBtn = TouchSensor( RC.Buttons['side'] )
 
     ColorSensor = ColorSensor( RC.ColorSensor_port )
@@ -65,7 +65,7 @@ def Stop_Dist(target):
 
 def Follow_Ultra(target):
         global previous_error
-        dist = UlraSensor.distance()/10
+        dist = UlraSensor.distance()
 
         error = target - dist
 
@@ -152,7 +152,7 @@ if True: # set up of variables
 
 Start = False
 while True:
-    if SideBtn.pressed(): #FrontBtn.pressed():
+    if SideBtn.pressed():
         Start = True
     elif Start:
         # upon releasing the button (may take multiple game cycles) starts the game
@@ -168,7 +168,7 @@ while True: # game loop
         break
 
     # stop the program detection
-    if End_of_stage: #FrontBtn.pressed() or End_of_stage:
+    if FrontBtn.pressed() or End_of_stage:
         # reseting driving clock
         Drive_Clock.pause()
         Drive_Clock.reset()
@@ -208,7 +208,10 @@ while True: # game loop
         robot.straight(CC.StageValues[ CC.DrivingStage ] + CC.DistanceSensor_Offset[ 'backwards' ])
         End_of_stage = True
     elif CC.DrivingStage == 4:
-        ServoTurn(-0.25 , 60)
+        ServoTurn(-0.25 , CC.RotationSpeed)
+        End_of_stage = True
+    elif CC.DrivingStage == 5:
+        ServoTurn(0.25 , CC.RotationSpeed)
         End_of_stage = True
     else:
         Ev3.speaker.beep()
