@@ -15,6 +15,10 @@ import RoboConstants as RC
 ##--##--##--## CODE CONSTANTS ##--##--##--##
 import CodeCostants as CC
 
+CC.DrivingStage = 1
+base = 1.001
+color_streak = 0 # negative value ...  white color  x   positive value ... black color
+
 ##--##--##--## ROBO SET UP ##--##--##
 if True:
     Ev3 = EV3Brick()
@@ -32,22 +36,39 @@ if True:
 
 ##--##--##--## Driving Funcions ##--##--##--##
 def Follow_Color():
-    global log
+    global log,color_streak,base
     Color_now = ColorSensor.color()
     log += str(Color_now) + "     "
+    
     if Color_now == Color.BLACK: # now it wants to find white => turning left
-        RightMotor.run(CC.RotationSpeed*(1-CC.black_koef))
-        LeftMotor.run(CC.RotationSpeed *(1+CC.black_koef))
+        if color_streak < 0:
+            color_streak = 0
+        else:
+             color_streak += 1
+        K = CC.black_koef*(base**(abs(color_streak)))
+        RightMotor.run(CC.RotationSpeed*(1-K))
+        LeftMotor.run(CC.RotationSpeed *(1+K))
         
     elif Color_now == Color.WHITE: # now it wants to find black => turning right
-        RightMotor.run(CC.RotationSpeed*(1+CC.white_koef))
-        LeftMotor.run(CC.RotationSpeed *(1-CC.white_koef))
+        if color_streak > 0:
+            color_streak = 0
+        else:
+             color_streak -= 1
+        K = CC.white_koef*(base**(abs(color_streak)))
+        RightMotor.run(CC.RotationSpeed*(1+K))
+        LeftMotor.run(CC.RotationSpeed *(1-K))
 
     else: # this is the same as for white, but it should not happen so better make a note in game log
         log += "\033[93m LACK OF LIGHT:\033[00m " # in Yellow
-        RightMotor.run(CC.RotationSpeed*(1+CC.white_koef))
-        LeftMotor.run(CC.RotationSpeed *(1-CC.white_koef))
-    log += str(Color_now) + "     "
+        
+        if color_streak > 0:
+            color_streak = 0
+        else:
+             color_streak -= 1
+        K = CC.white_koef*(base**(abs(color_streak)))
+        RightMotor.run(CC.RotationSpeed*(1+K))
+        LeftMotor.run(CC.RotationSpeed *(1-K))
+    log += str(Color_now) + "     " + str(K) + "     "
 
 def Stop_Dist(target):
     global log
@@ -66,7 +87,7 @@ def Stop_Dist(target):
 End = False
 Reset = False
 Changed = False
-CC.DrivingStage = 1
+
 while not End:
         if not Reset:
             Follow_Color()
@@ -74,6 +95,7 @@ while not End:
             print(log)
             log = ""
         else:
+            # adjusting values of koeficients
             if not Changed:
                 W = input("     koefWhite: ")
                 if not W == "":
@@ -81,7 +103,12 @@ while not End:
                 B = input("     koefBlack: ")
                 if not B == "":
                     CC.black_koef = float(B)
+                X = input("     base: ")
+                if not X == "":
+                             base = float(X)
                 Changed = True
+
+            # running again or stopping the program
             if SideBtn.pressed():
                 Reset = False
                 Changed = False
@@ -91,4 +118,5 @@ while not End:
 
 print(
 """white_koef =""",CC.white_koef,"""
-black_koef =""",CC.black_koef)
+black_koef =""",CC.black_koef,"""
+base =""",base)
