@@ -25,13 +25,13 @@ if True:
     ColorSensor = ColorSensor( RC.ColorSensor_port )
 
 ##--##--##--## Driving Funcions ##--##--##--##
-def Look_for_Line(search_angle,speed):
+def Look_for_Line(circle_fraction,speed):
     # safe the beginning position
     Angle_start = LeftMotor.angle()
     
     # calculating the turn
-    Angle_left  = (RC.Axle_Track/RC.Wheel_Diameter) * search_angle * -1 * 360
-    Angle_right = (RC.Axle_Track/RC.Wheel_Diameter) * search_angle      * 360
+    Angle_left  = (RC.Axle_Track/RC.Wheel_Diameter) * circle_fraction * -1 * 360
+    Angle_right = (RC.Axle_Track/RC.Wheel_Diameter) * circle_fraction      * 360
 
     RightMotor.run_angle( speed, Angle_right,wait=False)
     LeftMotor.run_angle(  speed, Angle_left, wait=False)
