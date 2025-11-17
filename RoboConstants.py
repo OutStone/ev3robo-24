@@ -2,20 +2,20 @@
 from pybricks.parameters import Port
 
 Motors = {
-    'left'  : Port.C,
-    'right' : Port.B,
-    'third' : Port.D
+    'drive' : Port.A,
+    'arm'   : Port.D,
+    'third' : Port.B
 }
 Buttons = {
-    'front' : Port.S1,
-    'side'  : Port.S2
+    'front' : Port.S2,
+    'side'  : Port.S2 
 }
 
 ColorSensor_port = Port.S3
 Gyro_port = Port.S3 # Not on robot
 
 InfraSensor_port = Port.S4 # Not on robot
-UlraSensor_port = Port.S4
+UlraSensor_port = Port.S1
 
-Wheel_Diameter = 43.2 # in milimeters
-Axle_Track = 108 # in mm 
+ArmWheelDiameter = 24 # in mm
+Wheel_Diameter = 50 # in mm #TODO: check 

@@ -2,52 +2,32 @@ import RoboConstants as RC
 
 DriveSpeed = 400 # in mm/s
 RotationSpeed = 360 * DriveSpeed/(RC.Wheel_Diameter*3.14) # in deg/s
-DrivingStage = 10 # changes with every turn
-RunSecondPart = True
+DrivingStage = 2 # changes with every turn
 
 UltraSensorMax = 2550
 DistanceSensor_Offset = {
-    "backwards" : 250,
+    "backwards" : 200,
     "sideways" : 50
 } # in cm from the ball eating part
 
-EndRun = -1 # TESTING ONLY
+EndRun_at = -1 # TESTING ONLY
 
-Do_ColorSort = True 
 StageValues = {
-    0: "open",
-    1: 1100,    # distance from wall where should stop
-    2: "close", 
-    3: -1050,   # distance to drive back to reach wall
-    4: 0.25,     # fraction of circle to steer
-    9: 560,
-   12: 1100,
+    2: "open",
+    3: "close",
+    4: 570, # in mm
+    5: "open",
+    6: "close",
+    7: 840, # in mm
+    8: "open",
+    9: "close",
+    4: 1110 # in mm
 }
-MotorsRunSeparately = [1]
 
 ##--##--## Constants for gate operating ##--##--##
-GateSpeed = 200 # in deg/s
-GateAngle = 90
+ArmSpeed = 800 # in deg/s
+ArmDist = 900 # in mm
 
 ##--##--## Time Constants (in ms) ##--##--##
 LoopTime = 20
 GameLenght = 90 * 1000
-
-##--##--## Constants for following wall with a sensor ##--##--##
-proportial_gain = 1.5
-derivative_gain = 4.5
-
-##--##--## Constants for mechanical following ##--##--##
-FollowAngle = {
-    'ok' : 3,
-    'btn-off' : -25
-}
-
-##--##--## Constants for line following ##--##--##
-white_koef = 0.45
-black_koef = 0.5
-
-SearchAngle = 1/6 # fraction of circle
-
-##--##--## Constants for turning function  ##--##--##
-TurnErr = 10/9 #CHECK: check at the competition
