@@ -10,8 +10,15 @@ from pybricks.media.ev3dev import SoundFile, ImageFile
 ##--##--##--## ROBO CONSTANTS ##--##--## 
 import RoboConstants as RC
 
-ArmMotor = Motor( RC.Motors['arm'],positive_direction = Direction.COUNTERCLOCKWISE )
+DriveMotor = Motor( RC.Motors['drive'],positive_direction = Direction.CLOCKWISE )
+Ev3 = EV3Brick()
 
-ArmMotor.run(1000)
+DriveMotor.run(800)
 wait(3000)
-ArmMotor.stop()
+Ev3.speaker.beep()
+DriveMotor.stop()
+
+DriveMotor.run(-800)
+wait(3000)
+Ev3.speaker.beep()
+DriveMotor.stop()

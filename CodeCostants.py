@@ -2,7 +2,7 @@ import RoboConstants as RC
 
 DriveSpeed = 400 # in mm/s
 RotationSpeed = 360 * DriveSpeed/(RC.Wheel_Diameter*3.14) # in deg/s
-DrivingStage = 2 # changes with every turn
+DrivingStage = 1 # changes with every turn
 
 UltraSensorMax = 2550
 DistanceSensor_Offset = {
@@ -13,15 +13,15 @@ DistanceSensor_Offset = {
 EndRun_at = -1 # TESTING ONLY
 
 StageValues = {
+    1: "close",
     2: "open",
-    3: "close",
-    4: 570, # in mm
-    5: "open",
-    6: "close",
-    7: 840, # in mm
-    8: "open",
-    9: "close",
-    4: 1110 # in mm
+    3: 840, # in mm
+    4: "close",
+    5: 400, # in mm
+    6: "open", 
+    7: 570, # in mm
+    8: "close",
+    9: "open"
 }
 
 ##--##--## Constants for gate operating ##--##--##
