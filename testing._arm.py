@@ -17,7 +17,7 @@ ArmMotor = Motor( RC.Motors['arm'],positive_direction = Direction.COUNTERCLOCKWI
 Ev3 = EV3Brick()
 
 # ArmMotor.run_time(800,1000)
-ArmMotor.run_target(800,1.1*CC.way_in_degs)
+ArmMotor.run_target(800,2.1*CC.way_in_degs)
 # wait(3000)
 Ev3.speaker.beep()
 # ArmMotor.stop()

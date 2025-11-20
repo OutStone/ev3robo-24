@@ -2,7 +2,7 @@ import RoboConstants as RC
 
 DriveSpeed = 800 # in mm/s
 RotationSpeed = 360 * DriveSpeed/(RC.Wheel_Diameter*3.14) # in deg/s
-DrivingStage = 1 # changes with every turn
+DrivingStage = 22 # changes with every turn
 
 UltraSensorMax = 2550
 DistanceSensor_Offset = {
@@ -10,7 +10,7 @@ DistanceSensor_Offset = {
     "sideways" : 50
 } # in cm from the ball eating part
 
-EndRun_at = 20 # TESTING ONLY
+EndRun_at = -1 # TESTING ONLY
 
 StageValues = {
     1 : "open",
@@ -24,33 +24,36 @@ StageValues = {
 
     # big I's
     9 : 360,  # in deg - dist for arm to drive
-    10: 1280,
-    11: 1010,
+    10: 900,
+    11: 0,
     
-    12: 840,  # in deg - dist for arm to drive
-    13: 1200,
-    14: 1010,
+    12: 900,  # in deg - dist for arm to drive
+    13: 650,
+    14: 0,
     
-    15: 1230,  # in deg - dist for arm to drive
-    16: 1120,
-    17: 1010,
+    15: 1500,  # in deg - dist for arm to drive
+    16: 450,
+    17: 0,
     
     18: -100, # in deg - dist for arm to drive
-    19: "open",
-    20: "close",
+    19: 1150,
+    20: "open",
+    21: "close",
 
     # squares
-    21: 360,   # in deg - dist for arm to drive
-    22: 1500,  # TODO: try this
-    23: 1350,  # TODO: try this
+    22: 360,   # in deg - dist for arm to drive
+    23: 700,  # TODO: try this
+    24: 0,  # TODO: try this
 
-    21: 840,   # in deg - dist for arm to drive
-    22: 1500,  # TODO: try this
-    23: 1350,  # TODO: try this
+    25: 900,   # in deg - dist for arm to drive
+    26: 700,  # TODO: try this
+    27: 0,  # TODO: try this
     
-    18: -100, # in deg - dist for arm to drive
-    19: "open",
-    20: "close",
+    28: -100, # in deg - dist for arm to drive
+    29: 1100,
+    30: "open",
+    31: "close",
+    31: 2000
 }
 
 ##--##--## Constants for gate operating ##--##--##
