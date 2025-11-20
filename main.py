@@ -7,9 +7,6 @@ from pybricks.tools import wait, StopWatch, DataLog
 from pybricks.robotics import DriveBase
 from pybricks.media.ev3dev import SoundFile, ImageFile
 
-##--##--##--## DATA LOG ##--##--## 
-log = ""
-
 ##--##--##--## ROBO CONSTANTS ##--##--## 
 import RoboConstants as RC
 
@@ -28,7 +25,7 @@ if True:
 
     # Sensors
     Btn_1 = TouchSensor( RC.Buttons['1'] )
-    Btn_2 = TouchSensor( RC.Buttons['2'] )
+    # Btn_2 = TouchSensor( RC.Buttons['2'] )
 
     # ColorSensor = ColorSensor( RC.ColorSensor_port )
 
@@ -38,21 +35,26 @@ if True:
 
 ##--##--##--## Driving Funcions ##--##--##--##
 def Stop_Dist(target,direction="forward"):
-    global log
+    global Buffer
 
     dist = UlraSensor.distance() + CC.DistanceSensor_Offset['backwards']
-    log += str(dist) + "     "
+    print(dist)
     if dist >= CC.UltraSensorMax:
             print("\033[92m Ultra reporting max value \033[00m")
-            return True
+            if Buffer:
+                 return True
+            Buffer = True
     
     #robo is going forward => wants a bit higher dist than target
     elif direction.lower() == "forward" and dist >= target: 
             return True
     
     #robo is going backward => wants a bit higher dist than target
-    if direction.lower() == "backward" and dist <= target: 
+    if direction.lower() == "backward" and dist <= target:
+            print("yes:",dist,target,dist <= target)
             return True
+    else:
+            Buffer = False
     
     return False
 
@@ -60,15 +62,15 @@ def Stop_Dist(target,direction="forward"):
 def Move_Arm(direct):
     # this func does back and forth movement with robot's arm
     if direct.lower() == "open":
-        flag = 1.2
+        degs = CC.way_in_degs*2
     elif direct.lower() == "close":
-        flag = -1.2 #TODO: trim
+        degs = -180 #TODO: trim
     else:
         print("\033[91m incorrect direction input to gate moving func '{}'\033[00m ".format(direct))
 
     ArmMotor.run_target(
         CC.ArmSpeed,
-        12000*flag 
+        degs 
     )
 
 def Stop_Arm_at(place):
@@ -82,21 +84,22 @@ def Stop_Arm_at(place):
         if place == 1:
             GO = Btn_1.pressed()
         elif place == 2:
-            GO = Btn_2.pressed()
+            # GO = Btn_2.pressed()
+            pass
         elif place == 3:
             pass
             # if needed, than here will be sth. with color sensor
 
     ArmMotor.stop()
             
-def Stepper_Arm(dist):
-    ArmMotor.run_angle(
-        CC.ArmSpeed,
-        360*dist/(6.3*RC.ArmWheelDiameter)
+def Stepper_Arm(dist): # in deg
+    ArmMotor.run_target(
+        CC.ArmSpeed*0.5,
+        dist
     )
     ArmMotor.stop()
             
-       
+
 ##--##--##--## GAME LOOP ##--##--##--##
 def END(msg):
     DriveMotor.stop()
@@ -108,10 +111,6 @@ if True: # set up of variables
     # driving
     End_of_stage = False # substitutes for a button press -> iniciates a robot turn
 
-    Drive_Clock = StopWatch() # measuring robot turn angle in mechanical follow
-    Drive_Clock.pause()
-    Drive_Clock.reset()
-
     Game_Clock = StopWatch() # for game timing
     Game_Clock.pause()
     Game_Clock.reset()
@@ -121,16 +120,20 @@ if True: # set up of variables
     Cycle_Clock.pause()
     Cycle_Clock.reset()
 
+Buffer = False
 Start = False
-while True:
+
+Ev3.speaker.play_notes(['C4/4', 'C4/4', 'G4/4', 'G4/4'])
+skip_btn = int(input("skip start btn? "))
+while True and not skip_btn:
     if Btn_1.pressed():
         Start = True
     elif Start:
         # upon releasing the button (may take multiple game cycles) starts the game
-        Game_Clock.resume()
-        Cycle_Clock.resume()
         break
 
+Game_Clock.resume()
+Cycle_Clock.resume()
 
 while True: # game loop
     
@@ -141,70 +144,174 @@ while True: # game loop
 
     # next stage triggered -> reseting before next game stage 
     if End_of_stage:
-        # reseting driving clock
-        Drive_Clock.pause()
-        Drive_Clock.reset()
 
         # reseting variables
         CC.DrivingStage += 1
         End_of_stage = False
+        Buffer = False
 
         # stoping the robot after movent
         DriveMotor.stop()
         ArmMotor.stop()
 
         # time logging
+        print("\033[97m",CC.DrivingStage)
         print("\033[97m     from start   : \033[93m",Game_Clock.time()/1000,
               "\033[97m     left         : \033[93m"  +    str((   Game_Clock.time() - CC.GameLenght )/1000),
               "\033[97m     stage lenght : \033[93m:",(  Game_Clock.time() - StageStartTime )/1000)
         print('\033[00m',CC.DrivingStage)
         StageStartTime = Game_Clock.time()
 
-        # forced stop
+        # forced stop - FOR DEBUG   
         if CC.DrivingStage == CC.EndRun_at:
             END("Forced End")
             break
 
 
-    # driving stage logic
+    #--##--## driving stage logic
+    # triangles
     if   CC.DrivingStage == 1:   # stacks tiles in front of storage
-            Move_Arm("close")
-            End_of_stage = True
-    elif CC.DrivingStage == 2:   # prepares for next set of tiles
             Move_Arm("open")
             End_of_stage = True
+    elif CC.DrivingStage == 2:   # prepares for next set of tiles
+            Move_Arm("close")
+            End_of_stage = True
+    
+    # bigs L's           
     elif CC.DrivingStage == 3:   # drives to next set of bricks
             DriveMotor.run(CC.RotationSpeed)
              # if I reached the target it returns True => next stage will activite
-            End_of_stage = Stop_Dist(CC.StageValues[ CC.DrivingStage ] - CC.DistanceSensor_Offset["backwards"])
-            
-    elif CC.DrivingStage == 4:   # stacks tiles in storage
-            Move_Arm("close")
-            End_of_stage = True
-    elif CC.DrivingStage == 5:   # drives back to next set of bricks - storage is kept closed with arm
-            DriveMotor.run(CC.RotationSpeed)
-            End_of_stage = Stop_Dist(
-                 CC.StageValues[ CC.DrivingStage ] - CC.DistanceSensor_Offset["backwards"],
-                 "backwards")
-            
-    elif CC.DrivingStage == 6:  # prepares for next set of tiles
+            End_of_stage = Stop_Dist(CC.StageValues[ CC.DrivingStage ] - CC.DistanceSensor_Offset["backwards"]) 
+    elif CC.DrivingStage == 4:   # stacks tiles in front of storage
             Move_Arm("open")
             End_of_stage = True
-    elif CC.DrivingStage == 7:  # drives to next set of bricks
+    elif CC.DrivingStage == 5:   # prepares for next set of tiles
+            Move_Arm("close")
+            End_of_stage = True
+    
+    # bigs Z's           
+    elif CC.DrivingStage == 6:   # drives to next set of bricks
             DriveMotor.run(CC.RotationSpeed)
-            End_of_stage = Stop_Dist(CC.StageValues[ CC.DrivingStage ] - CC.DistanceSensor_Offset["backwards"])
+            End_of_stage = Stop_Dist(CC.StageValues[ CC.DrivingStage ] - CC.DistanceSensor_Offset["backwards"]) 
+    elif CC.DrivingStage == 7:   # stacks tiles in front of storage
+            Move_Arm("open")
+            End_of_stage = True
+    elif CC.DrivingStage == 8:   # prepares for next set of tiles
+            Move_Arm("close")
+            End_of_stage = True
+    
+    # bigs I's   
+    # 1
+    elif CC.DrivingStage == 9:   # precisely moving the arm to position for repositioning of tile
+            Stepper_Arm(CC.StageValues[ CC.DrivingStage ])
+            End_of_stage = True
+    elif CC.DrivingStage == 10:   # pushes the tile forward
+            DriveMotor.run(0.5*CC.RotationSpeed)
+            End_of_stage = Stop_Dist(CC.StageValues[ CC.DrivingStage ] - CC.DistanceSensor_Offset["backwards"]) 
 
-    elif CC.DrivingStage == 8:   # stacks tiles in front of storage
+            if Cycle_Clock.time() < 75:
+                wait(75-Cycle_Clock.time())
+                Cycle_Clock.reset()
+    elif CC.DrivingStage == 11:   # drives back to next set of bricks - storage is kept closed with arm
+            DriveMotor.run(-0.5**CC.RotationSpeed)
+            End_of_stage = Stop_Dist(
+                  CC.StageValues[ CC.DrivingStage ] - CC.DistanceSensor_Offset["backwards"],
+                  "backward")
+            
+            if Cycle_Clock.time() < 75:
+                wait(75-Cycle_Clock.time())
+                Cycle_Clock.reset()
+    # 2    
+    elif CC.DrivingStage == 12:   # precisely moving the arm to position for repositioning of tile
+            Stepper_Arm(CC.StageValues[ CC.DrivingStage ])
+            End_of_stage = True
+    elif CC.DrivingStage == 13:   # pushes the tile forward
+            DriveMotor.run(0.5*CC.RotationSpeed)
+            End_of_stage = Stop_Dist(CC.StageValues[ CC.DrivingStage ] - CC.DistanceSensor_Offset["backwards"]) 
+            
+            if Cycle_Clock.time() < 75:
+                wait(75-Cycle_Clock.time())
+                Cycle_Clock.reset()
+    elif CC.DrivingStage == 14:   # drives back to next set of bricks - storage is kept closed with arm
+            DriveMotor.run(-0.5*CC.RotationSpeed)
+            End_of_stage = Stop_Dist(
+                  CC.StageValues[ CC.DrivingStage ] - CC.DistanceSensor_Offset["backwards"],
+                  "backward")
+            
+            if Cycle_Clock.time() < 75:
+                wait(75-Cycle_Clock.time())
+                Cycle_Clock.reset()
+    # 3          
+    elif CC.DrivingStage == 15:   # precisely moving the arm to position for repositioning of tile
+            Stepper_Arm(CC.StageValues[ CC.DrivingStage ])
+            End_of_stage = True
+    elif CC.DrivingStage == 16:   # pushes the tile forward
+            DriveMotor.run(0.5*CC.RotationSpeed)
+            End_of_stage = Stop_Dist(CC.StageValues[ CC.DrivingStage ] - CC.DistanceSensor_Offset["backwards"]) 
+            
+            if Cycle_Clock.time() < 75:
+                wait(75-Cycle_Clock.time())
+                Cycle_Clock.reset()
+    elif CC.DrivingStage == 17:   # drives back to next set of bricks - storage is kept closed with arm
+            DriveMotor.run(-0.5*CC.RotationSpeed)
+            End_of_stage = Stop_Dist(
+                  CC.StageValues[ CC.DrivingStage ] - CC.DistanceSensor_Offset["backwards"],
+                  "backward")
+            
+            if Cycle_Clock.time() < 75:
+                wait(75-Cycle_Clock.time())
+                Cycle_Clock.reset()
+    # stack them
+    elif CC.DrivingStage == 18:   # precisely moving the arm to position for repositioning of tile
+            Stepper_Arm(CC.StageValues[ CC.DrivingStage ])
+            End_of_stage = True           
+    elif CC.DrivingStage == 19:    # stacks tiles in front of storage
+            Move_Arm("open")
+            End_of_stage = True
+    elif CC.DrivingStage == 20:   # prepares for next set of tiles
             Move_Arm("close")
             End_of_stage = True
-    elif CC.DrivingStage == 9:   # prepares for next set of tiles
+
+    # squares   
+    # 1
+    elif CC.DrivingStage == 21:   # precisely moving the arm to position for repositioning of tile
+            Stepper_Arm(CC.StageValues[ CC.DrivingStage ])
+            End_of_stage = True
+    elif CC.DrivingStage == 22:   # pushes the tile forward
+            DriveMotor.run(CC.RotationSpeed)
+            End_of_stage = Stop_Dist(CC.StageValues[ CC.DrivingStage ] - CC.DistanceSensor_Offset["backwards"]) 
+    elif CC.DrivingStage == 23:   # drives back to next set of bricks - storage is kept closed with arm
+            DriveMotor.run(-1*CC.RotationSpeed)
+            End_of_stage = Stop_Dist(
+                  CC.StageValues[ CC.DrivingStage ] - CC.DistanceSensor_Offset["backwards"],
+                  "backward") 
+    # 2
+    elif CC.DrivingStage == 24:   # precisely moving the arm to position for repositioning of tile
+            Stepper_Arm(CC.StageValues[ CC.DrivingStage ])
+            End_of_stage = True
+    elif CC.DrivingStage == 25:   # pushes the tile forward
+            DriveMotor.run(CC.RotationSpeed)
+            End_of_stage = Stop_Dist(CC.StageValues[ CC.DrivingStage ] - CC.DistanceSensor_Offset["backwards"]) 
+    elif CC.DrivingStage == 26:   # drives back to next set of bricks - storage is kept closed with arm
+            DriveMotor.run(-1*CC.RotationSpeed)
+            End_of_stage = Stop_Dist(
+                  CC.StageValues[ CC.DrivingStage ] - CC.DistanceSensor_Offset["backwards"],
+                  "backward")
+    # stack them
+    elif CC.DrivingStage == 27:    # precisely moving the arm to position for repositioning of tile
+            Stepper_Arm(CC.StageValues[ CC.DrivingStage ])
+            End_of_stage = True           
+    elif CC.DrivingStage == 28:    # stacks tiles in front of storage
             Move_Arm("open")
-            End_of_stage = True 
+            End_of_stage = True
+    elif CC.DrivingStage == 29:    # prepares for next set of tiles
+            Move_Arm("close")
+
+    # drive forward to be in the box
+    elif CC.DrivingStage == 30:
+          DriveMotor.run_time(CC.DriveSpeed,1000) # drives for a whole second to surely be in the box 
+
     else:
         END("Task completed! - End")
         break
     
-
-    # managing the game log
-    print(log)
-    log = ""
