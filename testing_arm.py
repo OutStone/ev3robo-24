@@ -8,17 +8,19 @@ from pybricks.robotics import DriveBase
 from pybricks.media.ev3dev import SoundFile, ImageFile
 
 ##--##--##--## ROBO CONSTANTS ##--##--## 
-import RoboConstants as RC
+import constants_robo as RC
 
-DriveMotor = Motor( RC.Motors['drive'],positive_direction = Direction.CLOCKWISE )
+##--##--##--## CODE CONSTANTS ##--##--##--##
+import constants_code as CC
+
+ArmMotor = Motor( RC.Motors['arm'],positive_direction = Direction.COUNTERCLOCKWISE )
 Ev3 = EV3Brick()
 
-DriveMotor.run(800)
-wait(3000)
+ArmMotor.run_target(360,1440)
 Ev3.speaker.beep()
-DriveMotor.stop()
+ArmMotor.stop()
 
-DriveMotor.run(-800)
-wait(3000)
+
+ArmMotor.run_target(360,-1440)
 Ev3.speaker.beep()
-DriveMotor.stop()
+ArmMotor.stop()

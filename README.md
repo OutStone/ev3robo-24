@@ -6,31 +6,63 @@ Welcome to our code repo for a CVUT robo competiton, here's the link to the task
 
 # Our Approach
 
-As the forever changing main topic of this competition has now been chosen a game of domino with the objective being creating the longest line of them.
+As the forever changing main topic of this competition has now been chosen a game of domino with the objective being creating the longest line with connecting domino pieces.
+
+our idea is as crazy as always - create a robot with a giant spinning arm which will bring the pieces towards the middle of the map. There, around the centre of a robot, will stand a form designed to stack the pieces into the needed shape.    
 
 # Coding Intro
-
-This whole project is being made and will be made in micropython whith the use of a EV3 micropython library
+This whole project is made using micropython and its EV3 micropython library.
 
 <p align="center">
   <a href='https://pybricks.com/ev3-micropython/startinstall.html'>Oficial documentation</a>
 </p>
 
-NEVER DELETE FISRT LINE IN MAIN - it loads the micropython
+NEVER DELETE FIRST LINE IN MAIN - it loads the micropython
 ```python
 #!/usr/bin/env pybricks-micropython
 ```
 
 # Code snippets to use later
 
+
+
+# Code structure
+The movement of the robot is devided into two main parts each of which consists of another 4 sections.  
+
 ```python
-speaker.say(text)
-# how about we use this to get some info trought out the program test runs?
+
+# part I
+sect_i = 1
+
+while sect_i < 5:
+
+  if sect_i % 2:
+      # pieces needs to be turned 90deg
+
+  if sect_i == 4:
+      # one piece has to be turned 180deg
+
+# part II
+sect_i = 1
+
+while sect_i < 5:
+
+  if sect_i % 2==0:
+      # pieces needs to be turned 90deg
+    
+
+```
+
+a function to move the arm to the next piece
+```python
+
+def arm_moving(angle):
+    pass
+
 ```
 
 
 # 2025
-
 Third year in a row we are taking up for a robotic competiton with lego Ev3 robots. It may seem, that after previus two attemps we should have a knowledge about everything possible with this robot but thats still a long way to go. The task - which unsuprisingly changed again - was now focused on tetris tiles, which should be assembled in a corner of the map into a compact shape.
 
 In the begging, there was light and an attempt to seriously build a robot which would collect the pieces one by one using lines on the game plan for navigation, which I wasn't able to turn into reality due to technical limitations of our robo-set. Then we gave it a bit of thought and came up with a concept of a CNC maschine going from one end of the game plan to the other while collecting the pieces.
@@ -44,7 +76,7 @@ Another year's here and so is its robo task. The rules for this autumn introduce
 Firstly, we will drive the robot in a spiral to colect all the ping pong balls that we get points for. Secondly, we're gonna collect the rest of the balls and imediatly dump them at the oppents half of the game map.
 
 <p align="center">
-  <image src='mapa1.jpg' align='center' width='400'/>
+  <image src='.\src\map24.jpg' align='center' width='400'/>
 </p>
 <p align="center">
   here is a quick sketch of the idea

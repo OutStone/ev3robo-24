@@ -8,22 +8,23 @@ from pybricks.robotics import DriveBase
 from pybricks.media.ev3dev import SoundFile, ImageFile
 
 ##--##--##--## ROBO CONSTANTS ##--##--## 
-import RoboConstants as RC
+import constants_robo as RC
 
-##--##--##--## CODE CONSTANTS ##--##--##--##
-import CodeCostants as CC
-
-ArmMotor = Motor( RC.Motors['arm'],positive_direction = Direction.COUNTERCLOCKWISE )
+MainMotor = Motor( RC.Motors['main'],positive_direction = Direction.CLOCKWISE )
+btn = TouchSensor(RC.Buttons['1'])
 Ev3 = EV3Brick()
 
-# ArmMotor.run_time(800,1000)
-ArmMotor.run_target(800,2.1*CC.way_in_degs)
-# wait(3000)
-Ev3.speaker.beep()
-# ArmMotor.stop()
+waiting = input('press to start:')
 
-# wait(30)
-ArmMotor.run_target(800,-0.7*CC.way_in_degs)
-# wait(3000)
-Ev3.speaker.beep()
-# ArmMotor.stop()
+while True:
+    MainMotor.run(180)
+    if btn.pressed():
+        MainMotor.hold()
+        Ev3.speaker.beep()
+        wait(1500)
+
+        while btn.pressed():
+            MainMotor.run(180)
+            
+        Ev3.speaker.beep()
+
