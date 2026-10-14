@@ -22,7 +22,18 @@ NEVER DELETE FIRST LINE IN MAIN - it loads the micropython
 #!/usr/bin/env pybricks-micropython
 ```
 
-# Code snippets to use later
+# TODO
+
+proper constants for speed
+
+better system for angles
+
+robot set-up scripts with inputs
+
+a concept structure for the whole run
+    - most of the time the arm moves first outwards and only then in the circle  x  the 180 deg is an exception
+
+a place for todos (maybe here is a good place)
 
 
 

@@ -13,8 +13,6 @@ import constants_robo as RC
 MainMotor = Motor( RC.Motors['main'],positive_direction = Direction.CLOCKWISE )
 Ev3 = EV3Brick()
 
-# MainMotor.run_target(180, 2000, then=Stop.HOLD, wait=True)
 Ev3.speaker.beep()
 
-MainMotor.run_target(45, -45, then=Stop.HOLD, wait=True)
-Ev3.speaker.beep()
+MainMotor.run(180)

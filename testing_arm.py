@@ -13,14 +13,10 @@ import constants_robo as RC
 ##--##--##--## CODE CONSTANTS ##--##--##--##
 import constants_code as CC
 
-ArmMotor = Motor( RC.Motors['arm'],positive_direction = Direction.COUNTERCLOCKWISE )
+ArmMotor = Motor( RC.Motors['arm'],positive_direction = Direction.CLOCKWISE )
 Ev3 = EV3Brick()
 
-ArmMotor.run_target(360,1440)
+ArmMotor.run_target(360,2000)
 Ev3.speaker.beep()
 ArmMotor.stop()
 
-
-ArmMotor.run_target(360,-1440)
-Ev3.speaker.beep()
-ArmMotor.stop()
