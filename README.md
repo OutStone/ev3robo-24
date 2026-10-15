@@ -24,51 +24,35 @@ NEVER DELETE FIRST LINE IN MAIN - it loads the micropython
 
 # TODO
 
-proper constants for speed
-
-better system for angles
-
-robot set-up scripts with inputs
-
-a concept structure for the whole run
-    - most of the time the arm moves first outwards and only then in the circle  x  the 180 deg is an exception
-
-a place for todos (maybe here is a good place)
-
-
 
 # Code structure
 The movement of the robot is devided into two main parts each of which consists of another 4 sections.  
 
 ```python
+while i <9:
 
-# part I
-sect_i = 1
+    #prijedu k tomu dalsimu dilku
 
-while sect_i < 5:
+    _rotate(CC.Deg_vals[i])
 
-  if sect_i % 2:
-      # pieces needs to be turned 90deg
+    _arm(CC.Arm_added[i])     # dodatecny posun - treba u 3. kdy ten dilek otocim ale musim ho jeste nabrat
 
-  if sect_i == 4:
-      # one piece has to be turned 180deg
+    _90deg(CC.Turn_piece[i])  # kazdej druhej dilek je potreba otocit aby byl kolmo
 
-# part II
-sect_i = 1
+    _arm(CC.Arm_in[i])
 
-while sect_i < 5:
+    _arm(CC.Arm_out[i])
 
-  if sect_i % 2==0:
-      # pieces needs to be turned 90deg
+    # rameno konci zpatky odtazeny
     
 
 ```
 
-a function to move the arm to the next piece
+a function to move the arm toward/outward
 ```python
 
-def arm_moving(angle):
-    pass
+def _arm(target):
+    ArmMotor.run_target(v_arm, target)
 
 ```
 

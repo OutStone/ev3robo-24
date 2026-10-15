@@ -32,16 +32,25 @@ Arm_in = [
 
 Arm_out = [
     5.5 * 1000,
-    5.5 * 1000,
-    3.8 * 1000,
+    2   * 1000,
     4   * 1000,
     5   * 1000,
     4   * 1000,
     4   * 1000,
+    5.5 * 1000,
     Arm_in[-1] #tj. nestane se zadny pohyb
 ]
 
-
+Arm_added =  [
+    0,
+    0,
+    3.8 * 1000,
+    5.5 * 1000,
+    0,
+    0,
+    0, 
+    0
+]
 
 Turn_piece = [
     100, # arm rotation in degs

@@ -46,12 +46,14 @@ def _rotate(target):
 
 
 i = 1
-while i :
+while i <9:
     if i == CC.EndRun_at:
         break
 
     hodinky.resume()
     _rotate(CC.Deg_vals[i])
+
+    _arm(CC.Arm_added[i])
 
     if CC.Turn_piece[i]:
         _90deg(CC.Turn_piece[i])
@@ -60,7 +62,7 @@ while i :
 
     # tedka je pritahlej - nebude zde potreba nejaky dotrimovani?? - kdyztak pridat podminku
     
-    # nejakej edge case pro to otaceni dilku o 180°
+    # nejakej edge case pro to otaceni dilku o 180° - vyreseno pomoci tech pridavnych pohybu rotace a posunu - potreba testing
 
     _arm(CC.Arm_out[i])
 

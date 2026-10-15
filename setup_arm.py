@@ -27,3 +27,4 @@ while not btn.pressed():
     ArmMotor.run(d*360)
 
 ArmMotor.hold()
+print(ArmMotor.angle())
