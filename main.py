@@ -1,5 +1,5 @@
 # 3dilek - objet z venci a tim otocit, pak nabrat do pravy  a pritahnout
-#
+# 4dilek - drcnout do nej cestou k 5. a pak ho dotocit a pritahnout az po ulozeni 5.
 
 #!/usr/bin/env pybricks-micropython
 from pybricks.hubs import EV3Brick
@@ -20,55 +20,55 @@ import constants_code as CC
 ## robo setup
 MainMotor = Motor( RC.Motors['main'],positive_direction = Direction.CLOCKWISE )
 ArmMotor = Motor( RC.Motors['arm'],positive_direction = Direction.CLOCKWISE )
+ArmMotor.reset_angle(CC.Arm_start)
+
 btn = TouchSensor(RC.Buttons['1'])
 Ev3 = EV3Brick()
 
-speed = CC.RotationSpeed
+
+## variables setup
+hodinky = StopWatch()
+hodinky.reset()
+
+v_main = CC.Speeds['main']
+v_arm  = CC.Speeds['arm' ]
 
 
-# part I
-sect_i = 1
+# functions for robo-movement
+def _90deg(angle):
+    MainMotor.run_angle(v_main,angle)
 
-def _90deg():
-    MainMotor.run_angle(speed,100)
+def _arm(target):
+    ArmMotor.run_target(v_arm, target)
 
-#shorten 1, dont care about inaccuracy
+def _rotate(target):
+    MainMotor.run_target(v_main,target)
 
-while sect_i < 5:
-    print( CC.Rot_vals[0][sect_i] )
 
-    if sect_i ==1:
-        _90deg()
-    MainMotor.run_angle(speed, CC.Rot_vals[0][sect_i] )
+i = 1
+while i :
+    if i == CC.EndRun_at:
+        break
 
-    if sect_i % 2:
-        Ev3.speaker.beep()
+    hodinky.resume()
+    _rotate(CC.Deg_vals[i])
 
-    if sect_i == 4:
-      
-        Ev3.speaker.play_notes(['C4/4', 'E4/4', 'D4/4'], tempo=120)
+    if CC.Turn_piece[i]:
+        _90deg(CC.Turn_piece[i])
 
+    _arm(CC.Arm_in[i])
+
+    # tedka je pritahlej - nebude zde potreba nejaky dotrimovani?? - kdyztak pridat podminku
     
-    ArmMotor.run_angle(360, -1 * CC.Arm_dists[0][sect_i])
-    if sect_i != 4:
-        ArmMotor.run_angle(360, CC.Arm_dists[0][sect_i +1])
-    sect_i += 1
+    # nejakej edge case pro to otaceni dilku o 180°
 
-    waiting = input('press to continue:')
+    _arm(CC.Arm_out[i])
 
-input('stop')
-
-# part II
-sect_i = 1
-
-while sect_i < 5:
-    MainMotor.run_angle(speed, CC.Rot_vals[1][sect_i] )
-
-    ArmMotor.run_angle(360, CC.Arm_dists[1][sect_i])
+    hodinky.pause()
+    t = hodinky.time()
     
-    if sect_i % 2==0:
-        Ev3.speaker.beep()
+    Ev3.speaker.beep()
+    waiting = input('T='+str(t/1000)+'; press to continue:')
 
-    
-    ArmMotor.run_angle(360, -1 * CC.Arm_dists[1][sect_i])
-    sect_i += 1
+print("End\n time to spare: "+str(90-t/1000)
+       + '\n avrg time per piece: '+ str(round(t/(1000*i),2)))

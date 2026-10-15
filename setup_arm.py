@@ -17,7 +17,12 @@ ArmMotor = Motor( RC.Motors['arm'],positive_direction = Direction.CLOCKWISE )
 btn = TouchSensor(RC.Buttons['1'])
 Ev3 = EV3Brick()
 
-d = int(input('direction (1 is out; -1 is inward): '))
+# rotation reverse
+d = 1
+if input('unempty input = direction inward:') != "":
+    d = -1
+
+# rotation 'till btn press
 while not btn.pressed():
     ArmMotor.run(d*360)
 
