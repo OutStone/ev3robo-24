@@ -1,6 +1,3 @@
-# 3dilek - objet z venci a tim otocit, pak nabrat do pravy  a pritahnout
-# 4dilek - drcnout do nej cestou k 5. a pak ho dotocit a pritahnout az po ulozeni 5.
-
 #!/usr/bin/env pybricks-micropython
 from pybricks.hubs import EV3Brick
 from pybricks.ev3devices import (Motor, TouchSensor, ColorSensor,
@@ -45,20 +42,21 @@ begging_angle = int(input('angle on which the arm extender is starting:'))
 ArmMotor.reset_angle(begging_angle)
 
 while True:
-    typ = input('motor? (empty = extending, "stop" = break cycle):')
-    if typ.lower() == "stop":
+    
+    Ev3.speaker.beep()
+
+    d = input('(ws - ad - x)):')
+    if d.lower() == "x":
         break
 
-    direct = input('direction? (empty = counterclock):')
-
-    if direct != "":
+    k = 1
+    if d in ['s','d']:
         k = -1
 
-    if typ == "":
-        
+    if d in ['w','s']:      
         hodinky.resume()
-        while not btn.pressed():
-            ArmMotor.run(v_arm * k)
+        ArmMotor.run(v_arm * k)
+        stop = input('press to brake:')
         ArmMotor.hold()
         hodinky.pause()
         t = hodinky.time()
@@ -71,12 +69,13 @@ while True:
 
         print('angle: '+ str(angles[-1]) +' a cas: ' + str(Arm_times[-1]))
         last_time = t
-
-    else:
+    elif d in ['a','d']:  
         
         hodinky.resume()
-        while not btn.pressed():
-            MainMotor.run(v_arm * k)
+        MainMotor.run(v_arm * k)
+        
+        stop = input('press to brake:')
+        
         MainMotor.hold()
         hodinky.pause()
         t = hodinky.time()
@@ -93,7 +92,8 @@ while True:
 
 
 
+
 print("End\n time to spare: "+str(90-t/1000),
-       '\n angles=',angles,
-       '\n Rotor_times=',Rotor_times,
-       '\n Arm_times=',Arm_times)
+       '\nangles=',angles,
+       '\nRotor_times=',Rotor_times,
+       '\nArm_times=',Arm_times)

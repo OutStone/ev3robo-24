@@ -19,4 +19,3 @@ Ev3 = EV3Brick()
 ArmMotor.run_target(360,2000)
 Ev3.speaker.beep()
 ArmMotor.stop()
-

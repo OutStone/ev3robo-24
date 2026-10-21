@@ -35,42 +35,26 @@ v_arm  = CC.Speeds['arm' ]
 
 
 # functions for robo-movement
-def _90deg(angle):
-    MainMotor.run_angle(v_main,angle)
-
 def _arm(target):
     ArmMotor.run_target(v_arm, target)
 
 def _rotate(target):
     MainMotor.run_target(v_main,target)
 
+angles = CC.angles
 
-i = 1
-while i <9:
-    if i == CC.EndRun_at:
-        break
+hodinky.resume()
+for i in angles:
 
-    hodinky.resume()
-    _rotate(CC.Deg_vals[i])
+    if i[1] == 'Arm':
+        _arm(i[0])
+    else:
+        _rotate(i[0])
 
-    _arm(CC.Arm_added[i])
 
-    if CC.Turn_piece[i]:
-        _90deg(CC.Turn_piece[i])
-
-    _arm(CC.Arm_in[i])
-
-    # tedka je pritahlej - nebude zde potreba nejaky dotrimovani?? - kdyztak pridat podminku
-    
-    # nejakej edge case pro to otaceni dilku o 180° - vyreseno pomoci tech pridavnych pohybu rotace a posunu - potreba testing
-
-    _arm(CC.Arm_out[i])
-
-    hodinky.pause()
-    t = hodinky.time()
-    
-    Ev3.speaker.beep()
-    waiting = input('T='+str(t/1000)+'; press to continue:')
+Ev3.speaker.beep()
+hodinky.pause()
+t = hodinky.time()
 
 print("End\n time to spare: "+str(90-t/1000)
-       + '\n avrg time per piece: '+ str(round(t/(1000*i),2)))
+       + '\n avrg time per piece: '+ str(round(t/(1000*8),2)))
