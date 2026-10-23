@@ -1,6 +1,3 @@
-# 3dilek - objet z venci a tim otocit, pak nabrat do pravy  a pritahnout
-# 4dilek - drcnout do nej cestou k 5. a pak ho dotocit a pritahnout az po ulozeni 5.
-
 #!/usr/bin/env pybricks-micropython
 from pybricks.hubs import EV3Brick
 from pybricks.ev3devices import (Motor, TouchSensor, ColorSensor,
@@ -20,16 +17,20 @@ import constants_code as CC
 ## robo setup
 MainMotor = Motor( RC.Motors['main'],positive_direction = Direction.CLOCKWISE )
 ArmMotor = Motor( RC.Motors['arm'],positive_direction = Direction.CLOCKWISE )
-ArmMotor.reset_angle(CC.Arm_start)
 
 btn = TouchSensor(RC.Buttons['1'])
 Ev3 = EV3Brick()
+
+# just to be sure - however it is most likely redundant
+ArmMotor.reset_angle(0)
+MainMotor.reset_angle(0)
 
 
 ## variables setup
 hodinky = StopWatch()
 hodinky.reset()
 
+safety_delay = CC.safety_delay
 v_main = CC.Speeds['main']
 v_arm  = CC.Speeds['arm' ]
 
@@ -45,11 +46,13 @@ angles = CC.angles
 
 hodinky.resume()
 for i in angles:
-
+    Ev3.speaker.beep()
     if i[1] == 'Arm':
         _arm(i[0])
     else:
         _rotate(i[0])
+
+    wait(safety_delay)
 
 
 Ev3.speaker.beep()

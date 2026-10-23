@@ -37,15 +37,14 @@ v_main = CC.Speeds['main']
 v_arm  = CC.Speeds['arm' ]
 
 
-#TODO: netucha jak udelat zacatek - na kolika stupnich bude robot zacinat? ma to cislo dostat inputem nebo tam dojet?
-begging_angle = int(input('angle on which the arm extender is starting:'))
-ArmMotor.reset_angle(begging_angle)
+# begging_angle = int(input('angle on which the arm extender is starting:'))
+# ArmMotor.reset_angle(begging_angle)
 
 while True:
     
     Ev3.speaker.beep()
 
-    d = input('(ws - ad - x)):')
+    d = input('(ws - ad - x):')
     if d.lower() == "x":
         break
 
@@ -56,7 +55,7 @@ while True:
     if d in ['w','s']:      
         hodinky.resume()
         ArmMotor.run(v_arm * k)
-        stop = input('press to brake:')
+        stop = input('brake:')
         ArmMotor.hold()
         hodinky.pause()
         t = hodinky.time()
@@ -67,15 +66,15 @@ while True:
         Arm_times.append([ t-last_time,i ])
         angles.append([ ArmMotor.angle(), 'Arm' ])
 
-        print('angle: '+ str(angles[-1]) +' a cas: ' + str(Arm_times[-1]))
+        print('                    angle: '+ str(round(angles[-1][0]*2,-2)/2) + '; T= ' + str(round(t,-2)) +'; dT= ' +  str(round(Arm_times[-1][0], -2)))
         last_time = t
     elif d in ['a','d']:  
         
         hodinky.resume()
-        MainMotor.run(v_arm * k)
+        MainMotor.run(v_main * k)
         
-        stop = input('press to brake:')
-        
+        stop = input('brake:')
+
         MainMotor.hold()
         hodinky.pause()
         t = hodinky.time()
@@ -87,10 +86,8 @@ while True:
         Rotor_times.append([ t-last_time,i ])
         angles.append([ MainMotor.angle(), 'Main' ])
 
-        print('angle: '+ str(angles[-1]) +' a cas: ' + str(Rotor_times[-1]))
+        print('                    angle: '+ str(round(angles[-1][0]*2,-2)/2) + '; T= ' + str(round(t,-2)) +'; dT: ' + str(round(Rotor_times[-1][0], -2)))
         last_time = t
-
-
 
 
 print("End\n time to spare: "+str(90-t/1000),

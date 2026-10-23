@@ -1,11 +1,11 @@
 from tkinter import *
-# copy input variables
-Arm_times = [[10,1],[30,3],[11,6]]
-Rotor_times = [[15,2],[23,4],[31,5],[5,7]]
+# copy input variables 
+Rotor_times= [[7674, 0], [2020, 1], [369, 2], [549, 3], [478, 4], [3168, 8], [2606, 13], [926, 15], [2324, 16], [3697, 20], [887, 21], [2307, 24], [2427, 26], [799, 27], [4740, 30], [3471, 32], [1990, 35], [1401, 37], [1138, 38], [2772, 39], [2906, 41], [2357, 43], [2950, 45], [5537, 49], [3553, 51], [2503, 52], [1528, 53]] 
+Arm_times= [[1081, 5], [17165, 6], [15666, 7], [11510, 9], [1875, 10], [1089, 11], [12762, 12], [1101, 14], [1367, 17], [1998, 18], [2493, 19], [11230, 22], [7795, 23], [15808, 25], [24257, 28], [6253, 29], [7458, 31], [1687, 33], [2962, 34], [7910, 36], [12434, 40], [2364, 42], [2935, 44], [4021, 46], [3888, 47], [5548, 48], [13685, 50], [10820, 54]]
 
 
 to_secs = 1 # change to 1000 once I will start working with miliseconds
-ADJUSTED_BAR_GRAPH_SCALE = False # bar grapg wont have the scale of the first graph. Instead biggest value will have the maximal height.
+ADJUSTED_BAR_GRAPH_SCALE = True # bar grapg wont have the scale of the first graph. Instead biggest value will have the maximal height.
 
 #zpracovani dat
 suma = 0
@@ -119,14 +119,6 @@ for i in range(len(Rotor_times + Arm_times)):
         fill = color[ item[2] ],
         outline = color[ item[2] ]
     )
-
-    C.create_text(
-        X + 0.5*w, Y + gap + font_height, 
-        text=str(round(item[0],1)), 
-        fill="black", 
-        font=("Helvetica", font_height),
-        anchor="center"
-    )
     X += w + gap
 
 
@@ -170,5 +162,12 @@ C.create_text(
         anchor="center"
     )
 
+C.create_text(
+        mid_x, mid_y + 1.5 * font_height + 5, 
+        text="arm", 
+        fill=color['a'], 
+        font=("Helvetica", font_height),
+        anchor="center"
+    )
 C.pack()
 mainloop()
