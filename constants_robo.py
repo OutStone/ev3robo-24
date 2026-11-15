@@ -2,8 +2,9 @@
 from pybricks.parameters import Port
 
 Motors = {
-    'main'  : Port.D,
-    'arm'   : Port.A
+    'rotor'  : Port.B,
+    '1'   : Port.A,
+    '2'   : Port.D
 }
 Buttons = {
     '1'  : Port.S1

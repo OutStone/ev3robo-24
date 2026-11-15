@@ -15,11 +15,19 @@ import constants_code as CC
 
 
 ## robo setup
-MainMotor = Motor( RC.Motors['main'],positive_direction = Direction.CLOCKWISE )
-ArmMotor = Motor( RC.Motors['arm'],positive_direction = Direction.CLOCKWISE )
-ArmMotor.reset_angle(CC.Arm_start)
+Rotor = Motor( RC.Motors['rotor'],positive_direction = Direction.CLOCKWISE )
 
-Motors = [MainMotor,ArmMotor]
+Arm1 = Motor( RC.Motors['1'],positive_direction = Direction.CLOCKWISE )
+Arm2 = Motor( RC.Motors['2'],positive_direction = Direction.CLOCKWISE )
+
+Arm1.reset_angle(CC.Arm_start)
+Arm2.reset_angle(CC.Arm_start)
+
+Motors = [  [Rotor],
+            [Arm1, Arm2]
+]
+
+# Motors = [MainMotor,ArmMotor]
 
 btn = TouchSensor(RC.Buttons['1'])
 Ev3 = EV3Brick()
@@ -29,20 +37,17 @@ Ev3 = EV3Brick()
 hodinky = StopWatch()
 hodinky.reset()
 
-transl = {
-    0 : 'Main',
-    1 : 'Arm'
-}
 
-safety_delay = CC.safety_delay
+
 Times = [[],[]]
-last_time = 0
+time_last = 0
 
 angles = []
 
-v = [[CC.Speed['Main'], CC.Speed['Arm']],
-     [CC.Boost['Main'], CC.Boost['Arm']]
-]
+v = {
+    "slow" : [CC.Speed['rotor'],CC.Speed['arm']],
+    "fast" : [CC.Boost['rotor'],CC.Speed['arm']]
+}
 
 
 # begging_angle = int(input('angle on which the arm extender is starting:'))
@@ -50,61 +55,68 @@ v = [[CC.Speed['Main'], CC.Speed['Arm']],
 
 stop = ''
 while True:
-    wait(safety_delay)
+    wait(CC.safety_delay)
     Ev3.speaker.beep()
     # input categorisation
     if True:
-        # stop can carry a value from breaking
-        #            - we can omit breaking and go straight forward to new movement  
         if not stop.lower() in ['w','s','a','d']:
-            d = input('(ws - ad - x):')
-            if d.lower() == "x":
-                break
+                d = input('(ws - ad - x):')
+                if d.lower() == "x":
+                    break
         else:
             d = stop
-            print('going straight to new move') # TODO: this will go away
-
-        # Boost or normal speed 
-        speed_type = 0
+            print('going straight to new move')
+            
+        speed_type = 'slow'
         if d.lower() != d:
-            speed_type = 1
+            speed_type = 'fast'
         # Reverse
-        k = 1
+        dir = 1
         if d in ['s','d']:
-            k = -1
+            dir = -1
 
-        # which motor should run?
         i = 0
-        if d in ['w','s']:
-            i = 1
-
+        if d.lower() in ['s','w']:
+            i = i
+    
     # run  
-    hodinky.resume()
-    Motors[i].run(v[speed_type][i] * k)
+    if d.lower() in ['a','d']:
+        hodinky.resume()
+        
+        for m in Motors[i]:
+            m.run(v[speed_type][i] * dir)
+        
+        stop = input('brake or new cmd:')
+        
+        for m in Motors[i]:
+            m.hold()
+        
+        hodinky.pause()
 
-    stop = input('brake:')
-    Motors[i].hold()
-    hodinky.pause()
+        t = hodinky.time()
+        Ev3.speaker.beep()
 
-    t = hodinky.time()
-    Ev3.speaker.beep()
-
-    # data management
-    index = len(angles)
-    Times[i].append([
-         t-last_time,
-         index
-    ])
-    angles.append([
-         Motors[i].angle(),
-         i,
-         speed_type
-    ])
-
-    print('                    angle: '+ str(round(angles[-1][0]*2,-2)/2) + '; T= ' + str(round(t,-2)) +'; dT= ' +  str(round(Times[i][-1][0], -2)))
-    last_time = t
+        
+        # data management
+        index = len(angles)
+        Times[i].append([
+                t-time_last,
+                index
+        ])
+        angles.append([
+                Motors[i][0].angle(),
+                i,
+                speed_type
+        ])
+        
+        print('                    angle: '+ str(round(angles[-1][0]*2,-2)/2) + '; T= ' + str(round(t,-2)) +'; dT= ' +  str(round(Times[i][-1][0], -2)))
+        if i == 1:
+            print('           delta arm:', Motors[1][0].angle() - Motors[1][1].angle() )
+        time_last = t
+    
 
 print("End\n time to spare: "+str(90-t/1000),
        '\nangles=',angles,
        '\nRotor_times=',Times[0],
-       '\nArm_times=',Times[1])
+       '\nArm_times=',Times[1],
+       '\n delta arm=', Motors[1][0].angle() - Motors[1][1].angle())

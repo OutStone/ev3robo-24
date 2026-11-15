@@ -12,14 +12,17 @@ import constants_code as CC
 
 
 ## robo setup
-MainMotor = Motor( RC.Motors['main'],positive_direction = Direction.CLOCKWISE )
-ArmMotor = Motor( RC.Motors['arm'],positive_direction = Direction.CLOCKWISE )
+Rotor = Motor( RC.Motors['rotor'],positive_direction = Direction.CLOCKWISE )
 
-# just in case - however it is most likely redundant
-ArmMotor.reset_angle(0)
-MainMotor.reset_angle(0)
+Arm1 = Motor( RC.Motors['1'],positive_direction = Direction.CLOCKWISE )
+Arm2 = Motor( RC.Motors['2'],positive_direction = Direction.CLOCKWISE )
 
-Motors = [MainMotor,ArmMotor]
+Arm1.reset_angle(CC.Arm_start)
+Arm2.reset_angle(CC.Arm_start)
+
+Motors = [  [Rotor],
+            [Arm1, Arm2]
+]
 
 btn = TouchSensor(RC.Buttons['1'])
 Ev3 = EV3Brick()
@@ -28,30 +31,41 @@ Ev3 = EV3Brick()
 hodinky = StopWatch()
 hodinky.reset()
 
-safety_delay = CC.safety_delay
-v = [[CC.Speed['Main'], CC.Speed['Arm']],
-     [CC.Boost['Main'], CC.Boost['Arm']]
-]
+
+v = {
+    "slow" : [CC.Speed['rotor'],CC.Speed['arm']],
+    "fast" : [CC.Boost['rotor'],CC.Speed['arm']]
+}
 
 
 angles = CC.angles
 
 
 hodinky.resume()
-for i in angles:
+for cmd in angles:
     Ev3.speaker.beep()
 
-    Motors[ i[1] ].run_target(
-                    v[ i[2] ][ i[1] ], # speed - first coord carries boost values
-                    i[0]
+    i = cmd[1]
+    if len(Motors[ i ]) > 1:
+        Motors[i][0].run_target(
+                    v[ cmd[2] ][ cmd[1] ], # speed - first coord carries boost values
+                    cmd[0],
+                    wait=False
+        )
+    Motors[i][ -1 ].run_target(         # running the first motor from the end, there are either two or just one motor.  for two it now runs the secodn one (the first one is already running asynchonously) 
+                    v[ cmd[2] ][ cmd[1] ], # speed - first coord carries boost values
+                    cmd[0]
     )
 
-    wait(safety_delay)
+    wait(CC.safety_delay)
 
 # End data
 Ev3.speaker.beep()
 hodinky.pause()
 t = hodinky.time()
 
-print("End\n time to spare: "+str(90-t/1000)
-       + '\n avrg time per piece: '+ str(round(t/(1000*8),2)))
+print("End",
+      '\n time to spare: '+str(90-t/1000),
+      '\n avrg time per piece: '+ str(round(t/(1000*8),2)),
+       '\n sum of all waiting: ' + str( len(angles) * CC.safety_delay)
+)
