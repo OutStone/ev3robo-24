@@ -17,14 +17,10 @@ Rotor = Motor( RC.Motors['rotor'],positive_direction = Direction.CLOCKWISE )
 Arm1 = Motor( RC.Motors['1'],positive_direction = Direction.CLOCKWISE )
 Arm2 = Motor( RC.Motors['2'],positive_direction = Direction.CLOCKWISE )
 
-Arm1.reset_angle(CC.Arm_start)
-Arm2.reset_angle(CC.Arm_start)
-
 Motors = [  [Rotor],
             [Arm1, Arm2]
 ]
 
-btn = TouchSensor(RC.Buttons['1'])
 Ev3 = EV3Brick()
 
 ## variables setup
@@ -33,8 +29,8 @@ hodinky.reset()
 
 
 v = {
-    "slow" : [CC.Speed['rotor'],CC.Speed['arm']],
-    "fast" : [CC.Boost['rotor'],CC.Speed['arm']]
+    "quick" : [CC.Quick['rotor'],CC.Quick['arm']],
+    "slow" : [CC.Slow['rotor'],CC.Slow['arm']]
 }
 
 

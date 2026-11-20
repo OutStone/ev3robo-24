@@ -1,4 +1,6 @@
 #!/usr/bin/env pybricks-micropython
+# pridat revert (all/n tahu zpatky)
+import os # for clearing the console
 from pybricks.hubs import EV3Brick
 from pybricks.ev3devices import (Motor, TouchSensor, ColorSensor,
                                  InfraredSensor, UltrasonicSensor, GyroSensor)
@@ -20,8 +22,6 @@ Rotor = Motor( RC.Motors['rotor'],positive_direction = Direction.CLOCKWISE )
 Arm1 = Motor( RC.Motors['1'],positive_direction = Direction.CLOCKWISE )
 Arm2 = Motor( RC.Motors['2'],positive_direction = Direction.CLOCKWISE )
 
-Arm1.reset_angle(CC.Arm_start)
-Arm2.reset_angle(CC.Arm_start)
 
 Motors = [  [Rotor],
             [Arm1, Arm2]
@@ -29,7 +29,6 @@ Motors = [  [Rotor],
 
 # Motors = [MainMotor,ArmMotor]
 
-btn = TouchSensor(RC.Buttons['1'])
 Ev3 = EV3Brick()
 
 
@@ -45,8 +44,8 @@ time_last = 0
 angles = []
 
 v = {
-    "slow" : [CC.Speed['rotor'],CC.Speed['arm']],
-    "fast" : [CC.Boost['rotor'],CC.Speed['arm']]
+    "quick" : [CC.Quick['rotor'],CC.Quick['arm']],
+    "slow" : [CC.Slow['rotor'],CC.Slow['arm']]
 }
 
 
@@ -61,26 +60,42 @@ while True:
     if True:
         if not stop.lower() in ['w','s','a','d']:
                 d = input('(ws - ad - x):')
-                if d.lower() == "x":
-                    break
         else:
             d = stop
             print('going straight to new move')
-            
-        speed_type = 'slow'
-        if d.lower() != d:
-            speed_type = 'fast'
-        # Reverse
-        dir = 1
-        if d in ['s','d']:
-            dir = -1
+        
+        if d.lower() == "x":
+            break
+        
+        if d.lower() == "reset":
+            index = []
+            Times = [[],[]]
+            os.system("cls")
+            print("     reset completed - list of moves is now empty")
+            continue
+        
+        if d.lower() == 't':
+            a_t = 0
+            for time in Times[1]:
+                a_t += time[0]
+            print("     T:",time_last, "\n     a_t:",a_t,"\n     r_x",time_last-a_t,"\n     remain:", 90*1000 - time_last)
 
-        i = 0
-        if d.lower() in ['s','w']:
-            i = i
+        # sorting speed boost, motor and the rotation direction
+        if True:
+            speed_type = 'quick'
+            if d.lower() != d:
+                speed_type = 'slow'
+            # Reverse
+            dir = 1
+            if d.lower() in ['s','d']:
+                dir = -1
+
+            i = 0
+            if d.lower() in ['s','w']:
+                i = 1
     
-    # run  
-    if d.lower() in ['a','d']:
+    # movement
+    if d.lower() in ['w','s','a','d']:
         hodinky.resume()
         
         for m in Motors[i]:
@@ -109,7 +124,7 @@ while True:
                 speed_type
         ])
         
-        print('                    angle: '+ str(round(angles[-1][0]*2,-2)/2) + '; T= ' + str(round(t,-2)) +'; dT= ' +  str(round(Times[i][-1][0], -2)))
+        print('           angle: '+ str(round(angles[-1][0]*2,-2)/2) + '; T= ' + str(round(t,-2)) +'; dT= ' +  str(round(Times[i][-1][0], -2)))
         if i == 1:
             print('           delta arm:', Motors[1][0].angle() - Motors[1][1].angle() )
         time_last = t
