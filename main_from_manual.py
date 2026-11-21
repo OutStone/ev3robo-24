@@ -34,11 +34,11 @@ v = {
 }
 
 
-angles = CC.angles
+Move_log = CC.Move_log
 
 
 hodinky.resume()
-for cmd in angles:
+for cmd in Move_log:
     Ev3.speaker.beep()
 
     i = cmd[1]
@@ -63,5 +63,5 @@ t = hodinky.time()
 print("End",
       '\n time to spare: '+str(90-t/1000),
       '\n avrg time per piece: '+ str(round(t/(1000*8),2)),
-       '\n sum of all waiting: ' + str( len(angles) * CC.safety_delay)
+       '\n sum of all waiting: ' + str( len(Move_log) * CC.safety_delay)
 )
