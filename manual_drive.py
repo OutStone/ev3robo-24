@@ -26,13 +26,13 @@ if True:
                 [Arm1, Arm2]
     ]
 
-    # Btn_l = TouchSensor(RC.Buttons['l'])
-    # Btn_r = TouchSensor(RC.Buttons['r'])
+    Btn_l = TouchSensor(RC.Buttons['l'])
+    Btn_r = TouchSensor(RC.Buttons['r'])
 
-    # Btns = [ 
-    #     Btn_l,
-    #     Btn_r
-    # ]
+    Btns = [ 
+        Btn_l,
+        Btn_r
+    ]
 
     Ev3 = EV3Brick()
 
@@ -49,16 +49,52 @@ if True:
     Move_log = []
 
     v = {
-    "quick" : [CC.Quick['rotor'],CC.Quick['arm']],
-    "slow" : [CC.Slow['rotor'],CC.Slow['arm']]
-}
+        "quick" : [CC.Quick['rotor'],CC.Quick['arm']],
+        "slow" : [CC.Slow['rotor'],CC.Slow['arm']]
+    }
     
     Record_log = CC.Move_log
     record_index = 0
 
+# helping funcs
+def move_info(i):
+    global time_last,t,Motors,Move_log,Time_log
+    gap = '           '
+    print(gap + 'angle: '+ str(round(Move_log[-1][1]*2,-2)/2))
+    print(gap + '   T=  '+ str(round(t,-2)) +'; dT= ' +  str(round(Time_log[ i ][0], -2)))
+    if i == 1:
+        print(gap + 'delta arm:', Motors[1][0].angle() - Motors[1][1].angle() )
+    time_last = t
+
+def reset():
+    index = []
+    Move_log = []
+    Time_log = [[],[]]
+    hodinky.reset()
+    time_last = 0
+    record_index = 0
+
+    Motors[0][0].reset_angle(0)
+    Motors[1][0].reset_angle(0)
+    Motors[1][1].reset_angle(0)
+
+    cls()
+    print("     reset completed - list of moves is now empty")
+
+def log():
+    print("time to spare: "+str(90-t/1000),
+        '\nMove_log=',Move_log,
+        '\nRotor_times=',Time_log[0],
+        '\nArm_times=',Time_log[1],
+        '\n delta arm=', Motors[1][0].angle() - Motors[1][1].angle())
+
+def cls():
+    print("\x1b[2J\x1b[H", end="")
+
 # movement funcs
 def manual(i,speed_type, dir):
-    global hodinky, Ev3, Time_log, Move_log, time_last, t, stop
+    global hodinky, Motors, v, Ev3
+    global Time_log, Move_log, time_last, t, stop
     hodinky.resume()
             
     for m in Motors[i]:
@@ -83,20 +119,67 @@ def manual(i,speed_type, dir):
             index
     ])
     Move_log.append([
+            'A',
             Motors[i][0].angle(),
             i,
             speed_type
     ])
-    
-    print('           angle: '+ str(round(Move_log[-1][0]*2,-2)/2) + '; T= ' + str(round(t,-2)) +'; dT= ' +  str(round(Time_log[i][-1][0], -2)))
-    if i == 1:
-        print('           delta arm:', Motors[1][0].angle() - Motors[1][1].angle() )
+
+    move_info(i)
     time_last = t
 
 
+def checkpoints(n):
+    global hodinky, Motors, v
+    dir = 1 if n < 0 else -1
+    n = abs(n)
+    reached = [n, n] 
+    now_pressed = [False, False] 
+    
+    hodinky.resume()
+    Motors[1][0].run(v["quick"][1] * dir)
+    Motors[1][1].run(v["quick"][1] * dir)
+            
+    while reached[0] + reached[1] != 0:
+        for i in [0,1]:
+            if reached[i] == 0:
+                continue
+                
+            if Btns[i].pressed():
+                if not now_pressed[i]:
+                    now_pressed[i] = True
+
+                    reached[i] -= 1
+                    if reached[i] == 0:
+                        Motors[1][i].hold()
+            else:
+                if now_pressed[i]: 
+                    now_pressed[i] = False
+
+        wait(CC.button_delay)
+    hodinky.pause()
+
+# Following STORED COMMANDS
+def recorded_angle(cmd):
+    global hodinky, Motors, v
+    i = cmd[2]
+
+    hodinky.resume()
+    if len(Motors[ i ]) > 1:
+        Motors[i][0].run_target(
+                    v[ cmd[3] ][ cmd[2] ], # speed - first coord carries boost values
+                    cmd[1],
+                    wait=False
+        )
+    Motors[i][ -1 ].run_target(         # running the first motor from the end, there are either two or just one motor.  for two it now runs the secodn one (the first one is already running asynchonously) 
+                    v[ cmd[3] ][ cmd[2] ], # speed - first coord carries boost values
+                    cmd[1]
+    )
+    hodinky.pause()
+
 
 def from_record(index):
-    global hodinky, Ev3, Time_log, Move_log, time_last, t
+    global hodinky, Ev3, Motors, Time_log, Move_log, time_last, t
 
     if index >= len(Record_log):
         print('Whole Record was replayed')
@@ -105,43 +188,29 @@ def from_record(index):
     cmd = Record_log[index]
 
     # the MOVEMENT
-    if True:
-        i = cmd[1]
-
-        hodinky.resume()
-        if len(Motors[ i ]) > 1:
-            Motors[i][0].run_target(
-                        v[ cmd[2] ][ cmd[1] ], # speed - first coord carries boost values
-                        cmd[0],
-                        wait=False
-            )
-        Motors[i][ -1 ].run_target(         # running the first motor from the end, there are either two or just one motor.  for two it now runs the secodn one (the first one is already running asynchonously) 
-                        v[ cmd[2] ][ cmd[1] ], # speed - first coord carries boost values
-                        cmd[0]
-        )
-        hodinky.pause()
+    typ = cmd[0] 
+    if typ == 'A':
+        recorded_angle(cmd)
+    if typ == 'P':
+        checkpoints(cmd[1])
 
     # DATA management
     if True:
-    
         t = hodinky.time()
-        i = len(Move_log)
-        Time_log[cmd[1]].append([
+        Time_log[cmd[2]].append([
                 t-time_last,
-                i
+                len(Move_log)
         ])
         Move_log.append([
                 cmd[0],
                 cmd[1],
-                cmd[2]
+                cmd[2],
+                cmd[3]
         ])
-        
-        print('           angle: '+ str(round(Move_log[-1][0]*2,-2)/2) + '; T= ' + str(round(t,-2)) +'; dT= ' +  str(round(Time_log[ cmd[1] ][-1][0], -2)))
-        if i == 1:
-            print('           delta arm:', Motors[1][0].angle() - Motors[1][1].angle() )
-        time_last = t
+    move_info(cmd[2])
+    time_last = t
 
-
+# other movement
 def restart():
         # arm half way home
         if True:
@@ -173,16 +242,6 @@ def restart():
                             0
             )
 
-def log():
-    print("time to spare: "+str(90-t/1000),
-        '\nMove_log=',Move_log,
-        '\nRotor_times=',Time_log[0],
-        '\nArm_times=',Time_log[1],
-        '\n delta arm=', Motors[1][0].angle() - Motors[1][1].angle())
-
-def cls():
-    print("\x1b[2J\x1b[H", end="")
-
 stop = ''
 while True:
     wait(CC.safety_delay)
@@ -204,31 +263,20 @@ while True:
         break
 
     # RESET of MOVEMENT RECORDING
-    if d.lower() == "reset":
-        index = []
-        Move_log = []
-        Time_log = [[],[]]
-        hodinky.reset()
-        time_last = 0
-        record_index = 0
-
-        Motors[0][0].reset_angle(0)
-        Motors[1][0].reset_angle(0)
-        Motors[1][1].reset_angle(0)
-
-        cls()
-        print("     reset completed - list of moves is now empty")
-        continue
+    if d.lower() == "reset": reset()
         
-
     # LOG of TIME
     if d.lower() == 't':
         a_t = 0
         for time in Time_log[1]:
             a_t += time[0]
-        print("     T:",time_last, "\n     a_t:",a_t,"\n     r_x",time_last-a_t,"\n     remain:", 90*1000 - time_last)
-        continue
 
+        print("     T:",time_last,
+            "\n     a_t:",a_t,
+            "\n     r_x",time_last-a_t,
+            "\n     remain:", 90*1000 - time_last)
+        continue
+    
     # REWRITE current POS
     if d.lower() == 'edit':
         x = int(input("arm:"))
@@ -237,8 +285,6 @@ while True:
         Motors[0][0].reset_angle(y)
         Motors[1][0].reset_angle(x)
         Motors[1][1].reset_angle(x)
-
-
     
     if d.lower() == 'log':
         cls()
@@ -248,6 +294,7 @@ while True:
         continue
 
     if d.lower() == "restart": restart()
+
     # sorting speed boost, motor and the rotation direction
     if True:
             speed_type = 'quick'
@@ -255,29 +302,31 @@ while True:
                 speed_type = 'slow'
             # Reverse
             dir = 1
-            if d.lower() in ['s','d']:
+            if d[0].lower() in ['s','d','e']:
                 dir = -1
 
             i = 0
             if d.lower() in ['s','w']:
                 i = 1
 
+    if d[0].lower() in ['e','q']:
+        n = int(d[2:]) * dir # dvojtecka kdyby jich bylo vic jak 10
+        checkpoints(n)
+        
+        t = hodinky.time()
+        Time_log[1].append([
+                t-time_last,
+                len(Move_log)
+        ])
+        Move_log.append([
+                'P',
+                n,
+                1,
+                "quick"
+        ])
+        move_info(1)
+        time_last = t
 
-    if d[0:1].lower() in ['e ','q ']: # kontroluju dva znaky
-        pass
-        # n = int(d[2:]) # dvojtecka kdyby jich bylo vic jak 10
-        # Motors[1][0].run()
-                
-        # reached = [n, n] 
-
-        # while reached[0] + reached[1] != 0:
-        #    for i in [0,1]:
-        #       if reached[i] == 0:
-        #           continue
-        #       if Btns[i].pressed():
-        #           reached[i] -= 1
-        #           if reached[i] == 0:
-        #                Motors[1][i].hold()
 
     # MOVEMENT - no mechanical stops
     if d.lower() in ['w','s','a','d']:  manual(i,speed_type,dir)

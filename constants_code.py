@@ -20,6 +20,7 @@ EndRun_at = -1 # TESTING ONLY
 ##--##--## Time Constants (in ms) ##--##--##
 GameLenght = 90 * 1000
 safety_delay = 100 #in ms
+button_delay = 15 #in ms
 
 
 # - 50.75
