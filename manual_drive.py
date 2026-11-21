@@ -196,28 +196,30 @@ while True:
             d = stop
             print('going straight to new move')
 
-        # END of CYCLE
-        if d.lower() == "x":
-            break
-
-        # RESET of MOVEMENT RECORDING
-        if d.lower() == "reset":
-            index = []
-            Move_log = []
-            Time_log = [[],[]]
-            hodinky.reset()
-            time_last = 0
-            record_index = 0
-
-            Motors[0][0].reset_angle(0)
-            Motors[1][0].reset_angle(0)
-            Motors[1][1].reset_angle(0)
-
-            cls()
-            print("     reset completed - list of moves is now empty")
-            continue
-        
+    # NO INPUT
     if d == '': continue
+
+    # END of CYCLE
+    if d.lower() == "x":
+        break
+
+    # RESET of MOVEMENT RECORDING
+    if d.lower() == "reset":
+        index = []
+        Move_log = []
+        Time_log = [[],[]]
+        hodinky.reset()
+        time_last = 0
+        record_index = 0
+
+        Motors[0][0].reset_angle(0)
+        Motors[1][0].reset_angle(0)
+        Motors[1][1].reset_angle(0)
+
+        cls()
+        print("     reset completed - list of moves is now empty")
+        continue
+        
 
     # LOG of TIME
     if d.lower() == 't':
@@ -227,6 +229,17 @@ while True:
         print("     T:",time_last, "\n     a_t:",a_t,"\n     r_x",time_last-a_t,"\n     remain:", 90*1000 - time_last)
         continue
 
+    # REWRITE current POS
+    if d.lower() == 'edit':
+        x = int(input("arm:"))
+        y = int(input("rotor:"))
+
+        Motors[0][0].reset_angle(y)
+        Motors[1][0].reset_angle(x)
+        Motors[1][1].reset_angle(x)
+
+
+    
     if d.lower() == 'log':
         cls()
         log()
@@ -268,15 +281,21 @@ while True:
 
     # MOVEMENT - no mechanical stops
     if d.lower() in ['w','s','a','d']:  manual(i,speed_type,dir)
+
     
     # - copying old moves
     if d[0].lower() == 'l':
         ask_questions = d[0].lower() == d[0] # if "l" is lower case, then it asks questions
 
-        if len(d) >= 3:
-            n = int(d[2:])
+        l = d.split()
+        if len(l) >= 1:
+            n = int(l[1])
+
+            if len(l) > 1:
+                record_index = int(l[2])
+                
             if n < 0:
-                n = len(Record_log)
+                n = len(Record_log) - record_index
         else:
             n = 1
 
