@@ -61,7 +61,7 @@ def move_info(i):
     global time_last,t,Motors,Move_log,Time_log
     gap = '           '
     print(gap + 'angle: '+ str(round(Move_log[-1][1]*2,-2)/2))
-    print(gap + '   T=  '+ str(round(t,-2)) +'; dT= ' +  str(round(Time_log[ i ][0], -2)))
+    print(gap + '   T=  '+ str(round(t,-2)) +'; dT= ' +  str(round(Time_log[ i ][-1][0], -2)))
     if i == 1:
         print(gap + 'delta arm:', Motors[1][0].angle() - Motors[1][1].angle() )
     time_last = t
@@ -211,7 +211,7 @@ def from_record(index):
     time_last = t
 
 # other movement
-def restart():
+def home():
         # arm half way home
         if True:
             Motors[1][0].run_target(
@@ -262,6 +262,36 @@ while True:
     if d.lower() == "x":
         break
 
+    # HELP
+    if d.lower() == 'h':
+        cls()
+        print("""list of keys/keywords in use:
+   x    ... end run & drive back to start ( X ... omits the drive)
+   h    ... print help
+  log   ... show the trajectory log
+   t    ... show the time management data
+   ------------
+ reset  ... deletes all the saved movement of this run
+  edit  ... rewrite the robots pos in space
+  home  ... drives back to start
+   ------------
+   l    ... execute previosly saved command
+    + n > 0; = -1  ... number of commands to execute (-1 ... all commands)
+    + i > 0; =  0  ... index of command where to start
+  e,q   ... drives to the n-th checkpoint ahead (q is towards robo)
+    + n > 0  ... number of checkpoints to pass
+   ------------
+  w,s   ... move arm (W,S ... slowly)
+  a,d   ... rotate arm (A,D ... slowly)
+   ------------
+   Driving speeds:
+    "quick" =""", str(v["quick"]),"""
+    "slow"  =""", str(v["slow"])
+              )
+        a = input('press to clear console:')
+        cls()
+        continue
+    
     # RESET of MOVEMENT RECORDING
     if d.lower() == "reset": reset()
         
@@ -277,6 +307,14 @@ while True:
             "\n     remain:", 90*1000 - time_last)
         continue
     
+    # LOG of movement
+    if d.lower() == 'log':
+        cls()
+        log()
+        a = input('press to continue (console will be cleared)')
+        cls()
+        continue
+
     # REWRITE current POS
     if d.lower() == 'edit':
         x = int(input("arm:"))
@@ -286,16 +324,10 @@ while True:
         Motors[1][0].reset_angle(x)
         Motors[1][1].reset_angle(x)
     
-    if d.lower() == 'log':
-        cls()
-        log()
-        a = input('press to continue (console will be cleared)')
-        cls()
-        continue
+    if d.lower() == "home":
+        home()
 
-    if d.lower() == "restart": restart()
-
-    # sorting speed boost, motor and the rotation direction
+    # sorting MOVEMENT vars
     if True:
             speed_type = 'quick'
             if d.lower() != d:
@@ -328,19 +360,18 @@ while True:
         time_last = t
 
 
-    # MOVEMENT - no mechanical stops
-    if d.lower() in ['w','s','a','d']:  manual(i,speed_type,dir)
+    # MOVEMENT - no mechanical stops    if d.lower() in ['w','s','a','d']:
+        manual(i,speed_type,dir)
 
-    
-    # - copying old moves
+    # MOVEMENT - from memory
     if d[0].lower() == 'l':
-        ask_questions = d[0].lower() == d[0] # if "l" is lower case, then it asks questions
+        ask_questions = (d[0].lower() == d[0]) # if "l" is lower case, then it asks questions
 
         l = d.split()
-        if len(l) >= 1:
+        if len(l) >= 2:
             n = int(l[1])
 
-            if len(l) > 1:
+            if len(l) > 2:
                 record_index = int(l[2])
                 
             if n < 0:
@@ -363,7 +394,7 @@ while True:
                 break
 
 if d.lower() == d:
-    restart()
+    home()
 cls()
 print("End")
 log()
