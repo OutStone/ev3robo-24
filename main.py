@@ -59,8 +59,13 @@ def checkpoints(n):
     n = abs(n)
     reached = [n, n] 
     now_pressed = [False, False] 
+
+    # robo starts with already pressed btn -> target number is highered (this btn does not count)
+    for i in [0,1]:
+        if Btns[i].pressed():
+            reached[i] += 1
     
-    Motors[1][0].run(v["quick"][1] * dir) # TODO: dir is not in saved values
+    Motors[1][0].run(v["quick"][1] * dir)
     Motors[1][1].run(v["quick"][1] * dir)
             
     while reached[0] + reached[1] != 0:

@@ -1,5 +1,7 @@
 #!/usr/bin/env pybricks-micropython
-# pridat revert (all/n tahu zpatky) - asi na to kaslu
+# TODO: 2D movement -> new key words (use numbers for better orient)
+# upgrade the overwrite func - zbytecny
+# pridat nastaveni pozice packy pres kostku pri pousteni
 from pybricks.hubs import EV3Brick
 from pybricks.ev3devices import (Motor, TouchSensor, ColorSensor,
                                  InfraredSensor, UltrasonicSensor, GyroSensor)
@@ -16,6 +18,8 @@ import constants_code as CC
 
 ## robo setup
 if True:
+
+
     Rotor = Motor( RC.Motors['rotor'],positive_direction = Direction.CLOCKWISE )
 
     Arm1 = Motor( RC.Motors['1'],positive_direction = Direction.CLOCKWISE )
@@ -26,8 +30,8 @@ if True:
                 [Arm1, Arm2]
     ]
 
-    Btn_l = TouchSensor(RC.Buttons['l'])
-    Btn_r = TouchSensor(RC.Buttons['r'])
+    Btn_l = 2#TouchSensor(RC.Buttons['l'])
+    Btn_r = 1#TouchSensor(RC.Buttons['r'])
 
     Btns = [ 
         Btn_l,
@@ -49,6 +53,7 @@ if True:
     Move_log = []
 
     v = {
+        "fast" : [CC.Fast['rotor'],CC.Fast['arm']],
         "quick" : [CC.Quick['rotor'],CC.Quick['arm']],
         "slow" : [CC.Slow['rotor'],CC.Slow['arm']]
     }
@@ -67,6 +72,7 @@ def move_info(i):
     time_last = t
 
 def reset():
+    global Move_log,index,Time_log,time_last,record_index
     index = []
     Move_log = []
     Time_log = [[],[]]
@@ -135,7 +141,12 @@ def checkpoints(n):
     n = abs(n)
     reached = [n, n] 
     now_pressed = [False, False] 
-    
+
+    # robo starts with already pressed btn -> target number is highered (this btn does not count)
+    for i in [0,1]:
+        if Btns[i].pressed():
+            reached[i] += 1
+
     hodinky.resume()
     Motors[1][0].run(v["quick"][1] * dir)
     Motors[1][1].run(v["quick"][1] * dir)
@@ -212,35 +223,36 @@ def from_record(index):
 
 # other movement
 def home():
-        # arm half way home
-        if True:
-            Motors[1][0].run_target(
+    global Motors, v
+    # arm half way home
+    if True:
+        Motors[1][0].run_target(
+                    v[ "quick" ][ 1 ], # speed - first coord carries boost values
+                    -570,
+                    wait = False
+        )
+        Motors[1][ 1 ].run_target(         # running the first motor from the end, there are either two or just one motor.  for two it now runs the secodn one (the first one is already running asynchonously) 
                         v[ "quick" ][ 1 ], # speed - first coord carries boost values
-                        -570,
-                        wait = False
-            )
-            Motors[1][ 1 ].run_target(         # running the first motor from the end, there are either two or just one motor.  for two it now runs the secodn one (the first one is already running asynchonously) 
-                            v[ "quick" ][ 1 ], # speed - first coord carries boost values
-                            -570
-            )
+                        -570
+        )
 
-        # rotor home
-        Motors[0][ 0 ].run_target(         # running the first motor from the end, there are either two or just one motor.  for two it now runs the secodn one (the first one is already running asynchonously) 
+    # rotor home
+    Motors[0][ 0 ].run_target(         # running the first motor from the end, there are either two or just one motor.  for two it now runs the secodn one (the first one is already running asynchonously) 
+                    v[ "quick" ][ 0 ], # speed - first coord carries boost values
+                    0
+    )
+
+    # arm home
+    if True:
+        Motors[1][ 0 ].run_target(         # running the first motor from the end, there are either two or just one motor.  for two it now runs the secodn one (the first one is already running asynchonously) 
+                        v[ "quick" ][ 0 ], # speed - first coord carries boost values
+                        0,
+                        wait = False
+        )
+        Motors[1][ 1 ].run_target(         # running the first motor from the end, there are either two or just one motor.  for two it now runs the secodn one (the first one is already running asynchonously) 
                         v[ "quick" ][ 0 ], # speed - first coord carries boost values
                         0
         )
-
-        # arm home
-        if True:
-            Motors[1][ 0 ].run_target(         # running the first motor from the end, there are either two or just one motor.  for two it now runs the secodn one (the first one is already running asynchonously) 
-                            v[ "quick" ][ 0 ], # speed - first coord carries boost values
-                            0,
-                            wait = False
-            )
-            Motors[1][ 1 ].run_target(         # running the first motor from the end, there are either two or just one motor.  for two it now runs the secodn one (the first one is already running asynchonously) 
-                            v[ "quick" ][ 0 ], # speed - first coord carries boost values
-                            0
-            )
 
 stop = ''
 while True:
@@ -253,6 +265,7 @@ while True:
                 d = input('(ws - ad - x):')
         else:
             d = stop
+            stop = ''
             print('going straight to new move')
 
     # NO INPUT
@@ -266,23 +279,28 @@ while True:
     if d.lower() == 'h':
         cls()
         print("""list of keys/keywords in use:
-   x    ... end run & drive back to start ( X ... omits the drive)
+   x    ... end run & drive back to start
+                ( X ... omits the drive)
    h    ... print help
   log   ... show the trajectory log
    t    ... show the time management data
    ------------
  reset  ... deletes all the saved movement of this run
-  edit  ... rewrite the robots pos in space
+  pos   ... rewrite the robots pos in space
   home  ... drives back to start
    ------------
    l    ... execute previosly saved command
+                (L ... no waiting after each move)
     + n > 0; = -1  ... number of commands to execute (-1 ... all commands)
     + i > 0; =  0  ... index of command where to start
   e,q   ... drives to the n-th checkpoint ahead (q is towards robo)
     + n > 0  ... number of checkpoints to pass
+                DISSABLED
    ------------
-  w,s   ... move arm (W,S ... slowly)
-  a,d   ... rotate arm (A,D ... slowly)
+  w,s   ... move arm
+                 (W,S ... slowly)
+  a,d   ... rotate arm
+                (A,D ... slowly)
    ------------
    Driving speeds:
     "quick" =""", str(v["quick"]),"""
@@ -293,7 +311,7 @@ while True:
         continue
     
     # RESET of MOVEMENT RECORDING
-    if d.lower() == "reset": reset()
+    if d.lower() == "reset": reset(); continue
         
     # LOG of TIME
     if d.lower() == 't':
@@ -316,16 +334,61 @@ while True:
         continue
 
     # REWRITE current POS
-    if d.lower() == 'edit':
+    if d.lower() == 'pos':
         x = int(input("arm:"))
         y = int(input("rotor:"))
 
         Motors[0][0].reset_angle(y)
         Motors[1][0].reset_angle(x)
         Motors[1][1].reset_angle(x)
+        continue
+
+    if d[0:4].lower() == 'edit':
+        continue
+        # while True:
+        #     i = input("Which index you want to replace? (x to escape) : ") # TODO: check if it is in range
+        #     if i == 'x':
+        #         break
+        #     i = int(i)
+        #     print('i=',i,'- ',Record_log[i])
+            
+        #     ans = input('Is that correct? (y,n,x)')
+        #     if ans == 'x':
+        #         break # TODO: it drives home
+        #     if ans == 'n':
+        #         continue
+
+        #     # new values
+        #     res = []
+        #     res.append(input('type of movement? (A / P):').upper())
+        #     if res[0] == 'A':
+        #         res.append(int(input('target angle?:'))) # TODO: add some dumb proofing for int func so it wont crash
+        #         res.append(int(input('Arm or rotor? (1 / 0):'))) # TODO: just the same
+        #         s = input('fast? (1/0)')
+        #         if s == "1":
+        #             res.append('quick')
+        #         else:
+        #             res.append('slow')
+        #     elif res[0] == 'P':
+        #         res.append(int(input('N of checkopoints?:'))) # TODO: add some dumb proofing for int func so it wont crash
+        #         res.append(1)
+        #         res.append('quick')
+        #     else:
+        #         print('bad input')
+        #         continue
+            
+        #     print(res)
+        #     ans = input('Is it ok? (*/n):')
+        #     if ans == "n":
+        #         continue
+        #     else:
+        #         Record_log[i] == res
+        #         break
+        # continue
     
     if d.lower() == "home":
         home()
+        continue
 
     # sorting MOVEMENT vars
     if True:
@@ -341,7 +404,10 @@ while True:
             if d.lower() in ['s','w']:
                 i = 1
 
-    if d[0].lower() in ['e','q']:
+
+    if d[0:1].lower() in ['e ','q ']:
+        continue
+        # berem dva znaky aby tam byla i mezera
         n = int(d[2:]) * dir # dvojtecka kdyby jich bylo vic jak 10
         checkpoints(n)
         
@@ -358,10 +424,13 @@ while True:
         ])
         move_info(1)
         time_last = t
+        continue
 
 
-    # MOVEMENT - no mechanical stops    if d.lower() in ['w','s','a','d']:
+    # MOVEMENT - no mechanical stops
+    if d.lower() in ['w','s','a','d']:
         manual(i,speed_type,dir)
+        continue
 
     # MOVEMENT - from memory
     if d[0].lower() == 'l':
@@ -372,6 +441,7 @@ while True:
             n = int(l[1])
 
             if len(l) > 2:
+                print("new memory index:",int(l[2]) + 1, "old memory index:", record_index + 1)
                 record_index = int(l[2])
                 
             if n < 0:
@@ -382,6 +452,7 @@ while True:
 
         counter = 0
         while True:
+            print('memory index:',record_index+1)
             from_record(record_index);   record_index += 1
 
             counter += 1
@@ -392,6 +463,7 @@ while True:
                         break
             else:
                 break
+        continue
 
 if d.lower() == d:
     home()
