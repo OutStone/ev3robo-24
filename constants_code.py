@@ -9,6 +9,7 @@ EndRun_at = -1 # TESTING ONLY
 ##--##--## Time Constants (in ms) ##--##--##
 GameLenght = 90 * 1000
 safety_delay = 100 #in ms
+_2d_delay = 10 #in ms
 button_delay = 15 #in ms
 
 Fast = {
@@ -24,8 +25,6 @@ Slow = {
     'arm' : 50
 }
 
-# - 50.75
-# 17.neco an jededn
-
-#
-#
+##--##--## Motors ratio convertion ##--##--##
+rot_m = 10400 # degrees of motor coresponding to 360 degs of arm rotation 
+arm_m = 1002/60  # degrees of motor coresponding to 60cm TODO:(check) of arm movement / 60 cm of movement

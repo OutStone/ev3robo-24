@@ -1,6 +1,4 @@
 #!/usr/bin/env pybricks-micropython
-# TODO: 2D movement -> new key words (use numbers for better orient)
-# upgrade the overwrite func - zbytecny
 # pridat nastaveni pozice packy pres kostku pri pousteni
 from pybricks.hubs import EV3Brick
 from pybricks.ev3devices import (Motor, TouchSensor, ColorSensor,
@@ -46,7 +44,7 @@ if True:
     hodinky.reset()
 
 
-    Time_log = [[],[]]
+    Time_log = [0,0,0]
     t = 0
     time_last = 0
 
@@ -63,19 +61,18 @@ if True:
 
 # helping funcs
 def move_info(i):
-    global time_last,t,Motors,Move_log,Time_log
+    global time_last,t,Motors,Move_log
     gap = '           '
     print(gap + 'angle: '+ str(round(Move_log[-1][1]*2,-2)/2))
-    print(gap + '   T=  '+ str(round(t,-2)) +'; dT= ' +  str(round(Time_log[ i ][-1][0], -2)))
+    print(gap + '   T=  '+ str(round(t,-2)) +'; dT= ' +  str(round(t - time_last, -2)))
     if i == 1:
         print(gap + 'delta arm:', Motors[1][0].angle() - Motors[1][1].angle() )
-    time_last = t
 
 def reset():
     global Move_log,index,Time_log,time_last,record_index
     index = []
     Move_log = []
-    Time_log = [[],[]]
+    Time_log = [0,0,0]
     hodinky.reset()
     time_last = 0
     record_index = 0
@@ -87,11 +84,24 @@ def reset():
     cls()
     print("     reset completed - list of moves is now empty")
 
+def time_info():
+    global Time_log,time_last
+    print("         T:",time_last,
+        "\n     rotor:",Time_log[0],
+        "\n       arm:",Time_log[1],
+        "\n        2D:",Time_log[2],
+        "\n   remains:", 90*1000 - time_last)
+
+def pos():
+    global Motors
+    print('rotor:',Motors[0][0])
+    print('arm 0:',Motors[1][0])
+    print('arm 1:',Motors[1][1])
+
+
 def log():
-    print("time to spare: "+str(90-t/1000),
-        '\nMove_log=',Move_log,
-        '\nRotor_times=',Time_log[0],
-        '\nArm_times=',Time_log[1],
+    time_info()
+    print('\nMove_log=',Move_log,
         '\n delta arm=', Motors[1][0].angle() - Motors[1][1].angle())
 
 def cls():
@@ -120,10 +130,7 @@ def manual(i,speed_type, dir):
     
     # DATA management
     index = len(Move_log)
-    Time_log[i].append([
-            t-time_last,
-            index
-    ])
+    Time_log[i] += t-time_last
     Move_log.append([
             'A',
             Motors[i][0].angle(),
@@ -170,6 +177,30 @@ def checkpoints(n):
         wait(CC.button_delay)
     hodinky.pause()
 
+
+def _2D(r,a):
+    global hodinky, Motors, v
+
+    hodinky.resume()
+    
+    Motors[0][0].run_target(
+                v['fast'][0],
+                r,
+                 wait=False
+    )
+    Motors[1][0].run_target(
+                v['fast'][1],
+                a,
+                wait=False
+        )
+    Motors[1][1].run_target(
+                v['fast'][1],
+                a
+    )
+    while Motors[0][0].speed() > 10: # TODO: nechci tady pridat kontrolu i toho druhyho z ramena?
+        wait(CC._2d_delay)
+    hodinky.pause()
+
 # Following STORED COMMANDS
 def recorded_angle(cmd):
     global hodinky, Motors, v
@@ -204,20 +235,23 @@ def from_record(index):
         recorded_angle(cmd)
     if typ == 'P':
         checkpoints(cmd[1])
+    if typ == 'D':
+        _2D(cmd[1],cmd[2])    
 
     # DATA management
     if True:
         t = hodinky.time()
-        Time_log[cmd[2]].append([
-                t-time_last,
-                len(Move_log)
-        ])
+        if typ != 'D':
+            Time_log[cmd[2]] += t-time_last
+        else:
+            Time_log[2] += t-time_last
         Move_log.append([
                 cmd[0],
                 cmd[1],
                 cmd[2],
                 cmd[3]
         ])
+    
     move_info(cmd[2])
     time_last = t
 
@@ -315,14 +349,7 @@ while True:
         
     # LOG of TIME
     if d.lower() == 't':
-        a_t = 0
-        for time in Time_log[1]:
-            a_t += time[0]
-
-        print("     T:",time_last,
-            "\n     a_t:",a_t,
-            "\n     r_x",time_last-a_t,
-            "\n     remain:", 90*1000 - time_last)
+        time_info()
         continue
     
     # LOG of movement
@@ -333,8 +360,12 @@ while True:
         cls()
         continue
 
-    # REWRITE current POS
+    # SHOW current POS
     if d.lower() == 'pos':
+        pos()
+
+    # REWRITE current POS
+    if d.lower() == 'edit pos':
         x = int(input("arm:"))
         y = int(input("rotor:"))
 
@@ -343,49 +374,6 @@ while True:
         Motors[1][1].reset_angle(x)
         continue
 
-    if d[0:4].lower() == 'edit':
-        continue
-        # while True:
-        #     i = input("Which index you want to replace? (x to escape) : ") # TODO: check if it is in range
-        #     if i == 'x':
-        #         break
-        #     i = int(i)
-        #     print('i=',i,'- ',Record_log[i])
-            
-        #     ans = input('Is that correct? (y,n,x)')
-        #     if ans == 'x':
-        #         break # TODO: it drives home
-        #     if ans == 'n':
-        #         continue
-
-        #     # new values
-        #     res = []
-        #     res.append(input('type of movement? (A / P):').upper())
-        #     if res[0] == 'A':
-        #         res.append(int(input('target angle?:'))) # TODO: add some dumb proofing for int func so it wont crash
-        #         res.append(int(input('Arm or rotor? (1 / 0):'))) # TODO: just the same
-        #         s = input('fast? (1/0)')
-        #         if s == "1":
-        #             res.append('quick')
-        #         else:
-        #             res.append('slow')
-        #     elif res[0] == 'P':
-        #         res.append(int(input('N of checkopoints?:'))) # TODO: add some dumb proofing for int func so it wont crash
-        #         res.append(1)
-        #         res.append('quick')
-        #     else:
-        #         print('bad input')
-        #         continue
-            
-        #     print(res)
-        #     ans = input('Is it ok? (*/n):')
-        #     if ans == "n":
-        #         continue
-        #     else:
-        #         Record_log[i] == res
-        #         break
-        # continue
-    
     if d.lower() == "home":
         home()
         continue
@@ -404,7 +392,7 @@ while True:
             if d.lower() in ['s','w']:
                 i = 1
 
-
+    # MOVEMENT - closed loop system
     if d[0:1].lower() in ['e ','q ']:
         continue
         # berem dva znaky aby tam byla i mezera
@@ -412,10 +400,7 @@ while True:
         checkpoints(n)
         
         t = hodinky.time()
-        Time_log[1].append([
-                t-time_last,
-                len(Move_log)
-        ])
+        Time_log[1] += t-time_last
         Move_log.append([
                 'P',
                 n,
@@ -427,6 +412,44 @@ while True:
         continue
 
 
+    # MOVEMENT - both axis of freedom at once
+    if d.lower() == '2d':
+        print('-- position:')
+        pos()
+        print('jednotky:')
+        print('360° rotor:',CC.rot_m)
+        print('  10 cm arm:',CC.arm_m*10)
+        l = input('end coords (rotor arm):').split()
+
+        # check for right input
+        try:
+            r = int(l[0])
+        except:
+            print("rotor target is not convertable to integer:",l[0])
+            continue
+        
+        try:
+            a = int(l[1])
+        except:
+            print("arm target is not convertable to integer:",l[1])
+            continue
+
+        _2D(r,a)
+
+        t = hodinky.time()
+        Time_log[2] += t-time_last
+        time_last = t
+        Move_log.append([
+                'D',
+                r,
+                a,
+                'fast'
+        ])
+
+        print('-- end position:')
+        pos()
+        continue
+    
     # MOVEMENT - no mechanical stops
     if d.lower() in ['w','s','a','d']:
         manual(i,speed_type,dir)
