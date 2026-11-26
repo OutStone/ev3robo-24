@@ -10,6 +10,9 @@ import constants_robo as RC
 ##--##--##--## CODE CONSTANTS ##--##--##--##
 import constants_code as CC
 
+##--##--##--## CODE CONSTANTS ##--##--##--##
+import Move_log as M_l
+
 
 ## robo setup
 if True:
@@ -40,7 +43,7 @@ if True:
 
     v = CC.v
     
-    Move_log = CC.Move_log
+    Move_log = M_l.Move_log
     record_index = 0
 
 
