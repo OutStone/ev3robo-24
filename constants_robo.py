@@ -7,8 +7,8 @@ Motors = {
     '2'   : Port.D
 }
 Buttons = {
-    'l'  : Port.S2,
-    'r'  : Port.S1
+    'l'  : Port.S1,
+    'r'  : Port.S4
 }
 
 ColorSensor_port = Port.S3 # Not on robot 

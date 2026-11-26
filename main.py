@@ -1,7 +1,7 @@
 #!/usr/bin/env pybricks-micropython
 from pybricks.hubs import EV3Brick
 from pybricks.ev3devices import Motor, TouchSensor
-from pybricks.parameters import Direction
+from pybricks.parameters import Direction, Button
 from pybricks.tools import wait, StopWatch, DataLog
 
 ##--##--##--## ROBO CONSTANTS ##--##--## 
@@ -23,8 +23,8 @@ if True:
                 [Arm1, Arm2]
     ]
 
-    Btn_l = TouchSensor(RC.Buttons['l'])
-    Btn_r = TouchSensor(RC.Buttons['r'])
+    Btn_l = 1#TouchSensor(RC.Buttons['l'])
+    Btn_r = 2#TouchSensor(RC.Buttons['r'])
 
     Btns = [ 
         Btn_l,
@@ -44,10 +44,7 @@ if True:
 
     Move_log = []
 
-    v = {
-        "quick" : [CC.Quick['rotor'],CC.Quick['arm']],
-        "slow" : [CC.Slow['rotor'],CC.Slow['arm']]
-    }
+    v = CC.v
     
     Move_log = CC.Move_log
     record_index = 0
@@ -85,6 +82,7 @@ def checkpoints(n):
                     now_pressed[i] = False
         
         wait(CC.button_delay)
+
 def recorded_angle(cmd):
     global hodinky, Motors, v
     i = cmd[2]
@@ -100,15 +98,71 @@ def recorded_angle(cmd):
                     cmd[1]
     )
 
+def _2D(r,a):
+    global Motors, v
+    
+    Motors[0][0].run_target(
+                v['fast'][0],
+                r,
+                 wait=False
+    )
+    Motors[1][0].run_target(
+                v['fast'][1],
+                a,
+                wait=False
+        )
+    Motors[1][1].run_target(
+                v['fast'][1],
+                a
+    )
+    while Motors[0][0].speed() > 10: # TODO: nechci tady pridat kontrolu i toho druhyho z ramena?
+        wait(CC._2d_delay)
 
-hodinky.resume()
+
+def manual(i, dir):
+    global hodinky, Motors, v, Ev3
+            
+    for m in Motors[i]:
+        m.run(v['slow'][i] * dir)
+
+    while not Button.CENTER in Ev3.buttons.pressed():
+        wait(10)
+
+    for m in Motors[i]:
+        m.hold()
+
+    while Button.CENTER in Ev3.buttons.pressed():
+        wait(10)
+
+    wait(50)
+    Ev3.speaker.beep()
+
+
+
 for cmd in Move_log:
     Ev3.speaker.beep()
+
+    while not Button.CENTER in Ev3.buttons.pressed():
+        if len(Ev3.buttons.pressed()) > 0:
+            b = Ev3.buttons.pressed()[0]
+
+            dir = 1
+            if b in [Button.DOWN,Button.RIGHT]:
+                dir = -1
+            i = 0
+            if b in [Button.DOWN,Button.UP]:
+                i = 1
+
+            manual(i,dir)
+    
+    hodinky.resume()
 
     if cmd[0] == 'A':
         recorded_angle(cmd)
     elif cmd[0] == 'P':
         checkpoints(cmd[1])
+    elif cmd[0] == 'D':
+        _2D(cmd[1],cmd[2])
 
     wait(CC.safety_delay)
 

@@ -50,11 +50,7 @@ if True:
 
     Move_log = []
 
-    v = {
-        "fast" : [CC.Fast['rotor'],CC.Fast['arm']],
-        "quick" : [CC.Quick['rotor'],CC.Quick['arm']],
-        "slow" : [CC.Slow['rotor'],CC.Slow['arm']]
-    }
+    v = CC.v
     
     Record_log = CC.Move_log
     record_index = 0
@@ -94,10 +90,19 @@ def time_info():
 
 def pos():
     global Motors
-    print('rotor:',Motors[0][0])
-    print('arm 0:',Motors[1][0])
-    print('arm 1:',Motors[1][1])
+    print('rotor:',Motors[0][0].angle())
+    print('arm 0:',Motors[1][0].angle())
+    print('arm 1:',Motors[1][1].angle())
 
+def merge():
+    global Record_log,record_index,Move_log
+
+    l = Record_log[record_index:]
+
+    for item in l:
+        Move_log.append(item)
+
+    print('merged the this round with rest of the record log')
 
 def log():
     time_info()
@@ -201,6 +206,18 @@ def _2D(r,a):
         wait(CC._2d_delay)
     hodinky.pause()
 
+def single(t,i):
+    hodinky.resume()
+
+    alpha = Motors[1][i].angle()
+    
+    Motors[1][i].reset_angle(alpha - t)
+    Motors[1][i].run_target(
+                v[ 'quick' ][ 1 ], # speed - first coord carries boost values
+                alpha,
+    )
+    hodinky.pause()
+
 # Following STORED COMMANDS
 def recorded_angle(cmd):
     global hodinky, Motors, v
@@ -236,7 +253,9 @@ def from_record(index):
     if typ == 'P':
         checkpoints(cmd[1])
     if typ == 'D':
-        _2D(cmd[1],cmd[2])    
+        _2D(cmd[1],cmd[2]) 
+    if typ == 'S':
+        single(cmd[1],cmd[2])       
 
     # DATA management
     if True:
@@ -251,6 +270,9 @@ def from_record(index):
                 cmd[2],
                 cmd[3]
         ])
+
+        if len(cmd) > 4:
+            Move_log[-1].append(cmd[4])
     
     move_info(cmd[2])
     time_last = t
@@ -300,7 +322,7 @@ while True:
         else:
             d = stop
             stop = ''
-            print('going straight to new move')
+            print('going straight to new command')
 
     # NO INPUT
     if d == '': continue
@@ -378,6 +400,59 @@ while True:
         home()
         continue
 
+    # MERGE last two moves into one 2D
+    if d.lower() == 'c':
+        l = Move_log[-1]
+        ll = Move_log[-2]
+        
+        # one of the moves is using checkpoints or they move the same arm
+        if l[0] == 'P' or ll[0] == 'P' or (l[0] == 'A' and ll[0] == 'A' and l[2] == ll[2]):
+            print('last two moves arent convertable to 2D')
+            continue
+
+        print('collapsing last two moves')
+        print(' - from now on time logs per type of motor are irrelevant')
+
+        Move_log.pop()
+        Move_log.pop()
+
+        if ll[0] == 'D':
+            r = ll[1]
+            a = ll[2]
+        else: # nutne je to 'A'
+            if ll[2] == 0:
+                r = ll[1]
+            else:
+                a = ll[1]
+        
+        if l[0] == 'D':
+            r = l[1]
+            a = l[2]
+        else: # nutne je to 'A'
+            if l[2] == 0:
+                r = l[1]
+            else:
+                a = l[1]
+
+        Move_log.append([
+            'D',
+            r,
+            a,
+            'fast'
+        ])
+
+        print('new log:', Move_log[-1])
+
+    # MERGE with the rest of record log
+    if d.lower() == 'm':
+        merge()
+
+    # add a COMMENT
+    if d[0].lower() in ['-','.']:
+        d = d[1:]
+        Move_log[-1].append(d)
+        continue
+
     # sorting MOVEMENT vars
     if True:
             speed_type = 'quick'
@@ -410,7 +485,6 @@ while True:
         move_info(1)
         time_last = t
         continue
-
 
     # MOVEMENT - both axis of freedom at once
     if d.lower() == '2d':
@@ -455,6 +529,29 @@ while True:
         manual(i,speed_type,dir)
         continue
 
+    if d.lower() == 'fix':
+        print("motor on port",RC.Motors['1'])
+        print('dir outwards')
+
+        a = input('Trim value:')
+        try:
+            a = int(a)
+        except:
+            print('not convertable to int')
+            continue
+        i = 0
+
+        single(a, i)
+
+        Move_log.append([
+            'S',
+            a,
+            0,
+            'quick'
+        ])
+        time_last = t
+        
+
     # MOVEMENT - from memory
     if d[0].lower() == 'l':
         ask_questions = (d[0].lower() == d[0]) # if "l" is lower case, then it asks questions
@@ -492,4 +589,7 @@ if d.lower() == d:
     home()
 cls()
 print("End")
+a = input('Do you want to merge with the rest of record log?:')
+if not a in ['n','0']:
+    merge()
 log()

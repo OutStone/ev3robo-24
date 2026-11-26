@@ -1,6 +1,6 @@
+Move_log= [['A', 500, 0, 'fast'], ['A', -650, 1, 'fast'], ['A', -250, 1, 'fast'], ['A', 1700, 0, 'quick'], ['D', 2050, -564, 'fast'], ['A', 490, 0, 'fast', 'added additional range movement'], ['A', -750, 1, 'fast'], ['D', 1400, -1092, 'fast'], ['A', -270, 1, 'fast', 'prvni dva done'], ['A', 4000, 0, 'fast'], ['D', 4517, -592, 'fast'], ['A', 3836, 0, 'quick'], ['D', 3672, -282, 'fast'], ['D', 4385, -105, 'fast'], ['D', 4742, 5, 'fast'], ['D', 5076, 77, 'fast'], ['A', -470, 1, 'fast'], ['A', 4095, 0, 'fast'], ['D', 3701, -766, 'fast'], ['D', 5000, -900, 'fast'], ['A', -1105, 1, 'fast'], ['A', -250, 1, 'fast'], ['A', 5492, 0, 'fast'], ['A', 240, 1, 'fast'], ['S', 20, 0, 'quick'], ['A', 6797, 0, 'fast'], ['D', 6000, -472, 'fast'], ['A', 1150, 1, 'fast'],['S', 20, 0, 'quick'], ['A', 7856, 0, 'fast'], ['A', -397, 1, 'fast'], ['A', 6324, 0, 'fast'], ['A', -550, 1, 'fast'], ['A', 6900, 0, 'fast'], ['A', -1075, 1, 'fast'], ['S', 100, 0, 'quick', 'fix posunout na driv - je to nutny?'], ['D', 6400, 60, 'fast', 'ob jedno driv je neco divnyho - nemuzu najit'], ['S', -130, 0, 'quick'], ['A', 8465, 0, 'fast'], ['A', -355, 1, 'fast'], ['A', 200, 1, 'fast'], ['A', 10000, 0, 'fast'], # ['A', -184, 1, 'fast'], ['A', 8193, 0, 'fast', 'tenhle dilek (o tah driv) si musi dat vic na stranu -> 2d pohyb'],
+            ['D', 8193, -184, 'fast'], ['A', -349, 1, 'fast'], ['A', -557, 1, 'fast'], ['D', 9343, -708, 'fast'], ['A', 9738, 0, 'fast'], ['A', -1127, 1, 'fast']] #, ['A', -589, 1, 'fast', 'tady na konci neodjizdet']] 
 
-Move_log= [['A', 150, 0, 'slow'], ['A', 500, 0, 'fast'], ['A', -650, 1, 'fast'], ['A', -250, 1, 'fast'], ['A', 2048, 0, 'fast'], ['A', -564, 1, 'fast'], ['A', 550, 0, 'fast'], ['A', -750, 1, 'fast'], ['A', 1400, 0, 'fast'], ['A', -1092, 1, 'fast'], ['A', -270, 1, 'fast'], ['A', 4000, 0, 'fast'], ['A', -482, 1, 'fast'], ['A', 4517, 0, 'fast'], ['A', -592, 1, 'fast'], ['A', 51, 1, 'fast'], ['A', 5441, 0, 'fast'], ['A', -210, 1, 'fast'], ['A', 6322, 0, 'fast'], ['A', 4826, 0, 'fast'], ['A', -436, 1, 'fast'], ['A', 4095, 0, 'fast'], ['A', -766, 1, 'fast'], ['A', 3701, 0, 'fast'], ['A', -900, 1, 'fast'], ['A', 5000, 0, 'fast'], ['A', -1105, 1, 'fast'], ['A', -250, 1, 'fast'], ['A', 5492, 0, 'fast'], ['A', 133, 1, 'fast'], ['A', 214, 1, 'fast'], ['A', 6797, 0, 'fast'], ['A', -472, 1, 'fast'], ['A', 6000, 0, 'fast'], ['A', 103, 1, 'fast'], ['A', 7856, 0, 'fast'], ['A', -397, 1, 'fast'], ['A', 6324, 0, 'fast'], ['A', -960, 1, 'fast'], ['A', -1094, 1, 'slow'], ['A', -27, 1, 'fast'], ['A', 39, 1, 'fast'], ['A', 8365, 0, 'fast'], ['A', -355, 1, 'fast'], ['A', 131, 1, 'fast'], ['A', 9518, 0, 'fast'], ['A', -184, 1, 'fast'], ['A', 8193, 0, 'quick'], ['A', -349, 1, 'quick'], ['A', -557, 1, 'quick'], ['A', 9056, 0, 'quick'], ['A', -615, 1, 'quick'], ['A', 9343, 0, 'quick'], ['A', -708, 1, 'quick'], ['A', 9738, 0, 'quick'], ['A', -1127, 1, 'quick'], ['A', -589, 1, 'quick']] 
-        #    ['D','rotor target','arm target','fast']
 Rotor_times= [[1471, 5], [2320, 9]] 
 Arm_times= [[2486, 6], [855, 7], [1399, 8]] 
 
@@ -12,6 +12,12 @@ safety_delay = 100 #in ms
 _2d_delay = 10 #in ms
 button_delay = 15 #in ms
 
+
+
+Ultra = {
+    'rotor': 900,
+    'arm' : 500
+}
 Fast = {
     'rotor': 700,
     'arm' : 300
@@ -28,3 +34,10 @@ Slow = {
 ##--##--## Motors ratio convertion ##--##--##
 rot_m = 10400 # degrees of motor coresponding to 360 degs of arm rotation 
 arm_m = 1002/60  # degrees of motor coresponding to 60cm TODO:(check) of arm movement / 60 cm of movement
+
+v = {
+        "ultra" : [Ultra['rotor'],Ultra['arm']],
+        "fast" :  [Fast['rotor'], Fast['arm']],
+        "quick" : [Quick['rotor'],Quick['arm']],
+        "slow" :  [Slow['rotor'], Slow['arm']]
+    }
