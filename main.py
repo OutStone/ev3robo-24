@@ -38,16 +38,17 @@ if True:
     hodinky = StopWatch()
     hodinky.reset()
 
-    Time_log = [[],[]]
-    t = 0
-    time_last = 0
-
-    Move_log = []
-
     v = CC.v
     
     Move_log = CC.Move_log
     record_index = 0
+
+
+def reset():
+    hodinky.reset()
+    Motors[0][0].reset_angle(0)
+    Motors[1][0].reset_angle(0)
+    Motors[1][1].reset_angle(0)
 
 ## movement funcs
 def checkpoints(n):
@@ -115,7 +116,7 @@ def _2D(r,a):
                 v['fast'][1],
                 a
     )
-    while Motors[0][0].speed() > 10: # TODO: nechci tady pridat kontrolu i toho druhyho z ramena?
+    while abs(Motors[0][0].speed()) > 10: # TODO: nechci tady pridat kontrolu i toho druhyho z ramena?
         wait(CC._2d_delay)
 
 def single(t,i):
@@ -144,26 +145,33 @@ def manual(i, dir):
 
     wait(50)
     Ev3.speaker.beep()
+    return
 
 
+
+
+Ev3.speaker.beep()
+while not Button.CENTER in Ev3.buttons.pressed():
+    if len(Ev3.buttons.pressed()) > 0:
+        b = Ev3.buttons.pressed()[0]
+
+        dir = 1
+        if b in [Button.DOWN,Button.RIGHT]:
+            dir = -1
+        i = 0
+        if b in [Button.DOWN,Button.UP]:
+            i = 1
+
+        manual(i,dir)
+
+print('out of setup')
+hodinky.resume()
+reset()
 
 for cmd in Move_log:
     Ev3.speaker.beep()
-
-    while not Button.CENTER in Ev3.buttons.pressed():
-        if len(Ev3.buttons.pressed()) > 0:
-            b = Ev3.buttons.pressed()[0]
-
-            dir = 1
-            if b in [Button.DOWN,Button.RIGHT]:
-                dir = -1
-            i = 0
-            if b in [Button.DOWN,Button.UP]:
-                i = 1
-
-            manual(i,dir)
+    print('cycling')
     
-    hodinky.resume()
 
     if cmd[0] == 'A':
         recorded_angle(cmd)

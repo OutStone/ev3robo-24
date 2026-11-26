@@ -205,7 +205,7 @@ def _2D(r,a):
                 v['fast'][1],
                 a
     )
-    while Motors[0][0].speed() > 10: # TODO: nechci tady pridat kontrolu i toho druhyho z ramena?
+    while abs(Motors[0][0].speed()) > 10: # TODO: nechci tady pridat kontrolu i toho druhyho z ramena?
         wait(CC._2d_delay)
     hodinky.pause()
 
@@ -286,30 +286,30 @@ def home():
     # arm half way home
     if True:
         Motors[1][0].run_target(
-                    v[ "quick" ][ 1 ], # speed - first coord carries boost values
+                    v[ "fast" ][ 1 ], # speed - first coord carries boost values
                     -570,
                     wait = False
         )
         Motors[1][ 1 ].run_target(         # running the first motor from the end, there are either two or just one motor.  for two it now runs the secodn one (the first one is already running asynchonously) 
-                        v[ "quick" ][ 1 ], # speed - first coord carries boost values
+                        v[ "fast" ][ 1 ], # speed - first coord carries boost values
                         -570
         )
 
     # rotor home
     Motors[0][ 0 ].run_target(         # running the first motor from the end, there are either two or just one motor.  for two it now runs the secodn one (the first one is already running asynchonously) 
-                    v[ "quick" ][ 0 ], # speed - first coord carries boost values
+                    v[ "fast" ][ 0 ], # speed - first coord carries boost values
                     0
     )
 
     # arm home
     if True:
         Motors[1][ 0 ].run_target(         # running the first motor from the end, there are either two or just one motor.  for two it now runs the secodn one (the first one is already running asynchonously) 
-                        v[ "quick" ][ 0 ], # speed - first coord carries boost values
+                        v[ "fast" ][ 0 ], # speed - first coord carries boost values
                         0,
                         wait = False
         )
         Motors[1][ 1 ].run_target(         # running the first motor from the end, there are either two or just one motor.  for two it now runs the secodn one (the first one is already running asynchonously) 
-                        v[ "quick" ][ 0 ], # speed - first coord carries boost values
+                        v[ "fast" ][ 0 ], # speed - first coord carries boost values
                         0
         )
 
