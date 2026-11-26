@@ -1,0 +1,19 @@
+- mapa + borders
+- robot
+- nase kostky
+- nahradni dily
+- prodluzka
+- baterky
+- nootebooky
+- nabijecka nootebooky, robot
+- malirska paska
+- najakej papir
+- obleceni
+
+
+- bacha na kluzkej podvozek u jednoho z ramen
+- zkusit paku u nejzazsiho dilu
+
+
+- pridat zrychleny useky
+- zkouknout ten ctvrtej dilek - trosku dotrimovat ty 2d tahy 

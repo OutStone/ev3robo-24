@@ -118,6 +118,14 @@ def _2D(r,a):
     while Motors[0][0].speed() > 10: # TODO: nechci tady pridat kontrolu i toho druhyho z ramena?
         wait(CC._2d_delay)
 
+def single(t,i):
+    alpha = Motors[1][i].angle()
+    
+    Motors[1][i].reset_angle(alpha - t)
+    Motors[1][i].run_target(
+                v[ 'quick' ][ 1 ], # speed - first coord carries boost values
+                alpha,
+    )
 
 def manual(i, dir):
     global hodinky, Motors, v, Ev3
@@ -163,8 +171,10 @@ for cmd in Move_log:
         checkpoints(cmd[1])
     elif cmd[0] == 'D':
         _2D(cmd[1],cmd[2])
+    elif cmd[0] == 'S':
+        single(cmd[1],cmd[2])   
 
-    wait(CC.safety_delay)
+    wait(CC.safety_delay) #TODO: maybe shorten?
 
 # End data
 Ev3.speaker.beep()

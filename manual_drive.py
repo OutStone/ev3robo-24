@@ -40,6 +40,9 @@ if True:
 
 ## variables setup
 if True:
+    MAIN_CLOCK = StopWatch()
+    MAIN_CLOCK.reset()
+
     hodinky = StopWatch()
     hodinky.reset()
 
@@ -358,6 +361,8 @@ while True:
   a,d   ... rotate arm
                 (A,D ... slowly)
    ------------
+    missing - pos x edit pos, fix, 2d + c, m
+   ------------
    Driving speeds:
     "quick" =""", str(v["quick"]),"""
     "slow"  =""", str(v["slow"])
@@ -571,6 +576,7 @@ while True:
 
 
         counter = 0
+        MAIN_CLOCK.resume()
         while True:
             print('memory index:',record_index+1)
             from_record(record_index);   record_index += 1
@@ -583,6 +589,8 @@ while True:
                         break
             else:
                 break
+        MAIN_CLOCK.pause()
+        print("WHOLE TIME:", MAIN_CLOCK.time())
         continue
 
 if d.lower() == d:
